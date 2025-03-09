@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Optional, List, UUID
+from typing import Optional, List
+from uuid import UUID
 from shared.domain.entities.user import User
 
 class UserRepositoryProtocol(ABC):

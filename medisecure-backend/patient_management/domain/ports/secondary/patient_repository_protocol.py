@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Optional, List, UUID
+from typing import Optional, List 
+from uuid import UUID
 from datetime import date
 
 from patient_management.domain.entities.patient import Patient

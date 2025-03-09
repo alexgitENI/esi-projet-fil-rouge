@@ -1,5 +1,6 @@
 from datetime import date, datetime, timedelta
-from typing import Optional, Dict, Any, List, UUID
+from typing import Optional, Dict, Any, List 
+from uuid import UUID
 
 from patient_management.domain.entities.patient import Patient
 from patient_management.domain.exceptions.patient_exceptions import (

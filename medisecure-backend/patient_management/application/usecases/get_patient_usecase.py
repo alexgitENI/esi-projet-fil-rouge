@@ -1,4 +1,5 @@
-from typing import UUID, Optional
+from typing import Optional
+from uuid import UUID
 
 from patient_management.domain.entities.patient import Patient
 from patient_management.domain.services.patient_service import PatientService

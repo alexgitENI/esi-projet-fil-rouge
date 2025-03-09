@@ -1,4 +1,5 @@
-from typing import Optional, List, Dict, UUID
+from typing import Optional, List, Dict
+from uuid import UUID
 from shared.domain.entities.user import User
 from shared.ports.secondary.user_repository_protocol import UserRepositoryProtocol
 

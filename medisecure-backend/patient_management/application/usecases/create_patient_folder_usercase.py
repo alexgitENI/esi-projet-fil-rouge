@@ -1,5 +1,6 @@
 from datetime import date
-from typing import Optional, Dict, Any, UUID
+from typing import Optional, Dict, Any 
+from uuid import UUID
 from uuid import uuid4
 
 from patient_management.domain.entities.patient import Patient

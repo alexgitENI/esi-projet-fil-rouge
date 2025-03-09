@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from datetime import date, datetime
-from typing import Optional, Dict, List, Any, UUID
+from typing import Optional, Dict, List, Any
+from uuid import UUID
 
 @dataclass
 class Patient:

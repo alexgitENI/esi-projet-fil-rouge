@@ -1,4 +1,5 @@
-from typing import Optional, List, Dict, Any, UUID
+from typing import Optional, List, Dict, Any
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, Path, status
 from datetime import date
 
@@ -11,7 +12,7 @@ from patient_management.application.dtos.patient_dtos import (
     PatientListResponseDTO,
     PatientSearchDTO
 )
-from patient_management.application.usecases.create_patient_folder_usecase import CreatePatientFolderUseCase
+from patient_management.application.usecases.create_patient_folder_usercase import CreatePatientFolderUseCase
 from patient_management.application.usecases.update_patient_usecase import UpdatePatientUseCase
 from patient_management.application.usecases.get_patient_usecase import GetPatientUseCase
 from patient_management.domain.exceptions.patient_exceptions import (

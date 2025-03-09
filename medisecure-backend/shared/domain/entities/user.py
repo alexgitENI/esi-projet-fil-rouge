@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional, UUID
+from typing import Optional
+from uuid import UUID
 from shared.domain.enums.roles import UserRole
 
 @dataclass

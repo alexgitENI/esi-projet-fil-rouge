@@ -1,4 +1,5 @@
-from typing import Optional, List, UUID
+from typing import Optional, List
+from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import update, delete
