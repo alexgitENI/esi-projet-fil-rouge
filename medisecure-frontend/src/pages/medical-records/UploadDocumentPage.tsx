@@ -130,7 +130,7 @@ const UploadDocumentPage: React.FC = () => {
     <div className="space-y-6">
       {/* En-tête */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold text-neutral-900">
+        <h1 className="text-2xl font-semibold text-slate-900">
           {recordId
             ? `Ajouter un document à "${recordTitle}"`
             : "Télécharger un nouveau document"}
@@ -203,10 +203,10 @@ const UploadDocumentPage: React.FC = () => {
                 Document
                 <span className="text-error-500 ml-1">*</span>
               </label>
-              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-neutral-300 border-dashed rounded-md">
+              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-md">
                 <div className="space-y-1 text-center">
                   <svg
-                    className="mx-auto h-12 w-12 text-neutral-400"
+                    className="mx-auto h-12 w-12 text-slate-400"
                     stroke="currentColor"
                     fill="none"
                     viewBox="0 0 48 48"
@@ -219,7 +219,7 @@ const UploadDocumentPage: React.FC = () => {
                       strokeLinejoin="round"
                     />
                   </svg>
-                  <div className="flex text-sm text-neutral-600">
+                  <div className="flex text-sm text-slate-600">
                     <label
                       htmlFor="file-upload"
                       className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500"
@@ -236,7 +236,7 @@ const UploadDocumentPage: React.FC = () => {
                     </label>
                     <p className="pl-1">ou glisser-déposer</p>
                   </div>
-                  <p className="text-xs text-neutral-500">
+                  <p className="text-xs text-slate-500">
                     PDF, PNG, JPG, DOCX jusqu'à 10MB
                   </p>
                   {selectedFile && (

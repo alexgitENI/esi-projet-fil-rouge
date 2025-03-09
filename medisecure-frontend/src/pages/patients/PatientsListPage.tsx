@@ -193,7 +193,7 @@ const PatientsListPage: React.FC = () => {
     <div className="space-y-6">
       {/* En-tête */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
-        <h1 className="text-2xl font-semibold text-neutral-900">Patients</h1>
+        <h1 className="text-2xl font-semibold text-slate-900">Patients</h1>
         <Link
           to="/patients/create"
           className="btn btn-primary inline-flex items-center"
@@ -220,7 +220,7 @@ const PatientsListPage: React.FC = () => {
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <svg
-            className="h-5 w-5 text-neutral-400"
+            className="h-5 w-5 text-slate-400"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -249,19 +249,19 @@ const PatientsListPage: React.FC = () => {
           <table className="min-w-full divide-y divide-neutral-200">
             <thead>
               <tr>
-                <th className="px-3 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                <th className="px-3 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                   Nom
                 </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                <th className="px-3 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                   Informations
                 </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                <th className="px-3 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                   Contact
                 </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                <th className="px-3 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                   Numéro d'assurance
                 </th>
-                <th className="px-3 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                <th className="px-3 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -271,14 +271,14 @@ const PatientsListPage: React.FC = () => {
                 <tr>
                   <td
                     colSpan={5}
-                    className="px-3 py-4 text-center text-neutral-500"
+                    className="px-3 py-4 text-center text-slate-500"
                   >
                     Aucun patient trouvé
                   </td>
                 </tr>
               ) : (
                 filteredPatients.map((patient) => (
-                  <tr key={patient.id} className="hover:bg-neutral-50">
+                  <tr key={patient.id} className="hover:bg-slate-50">
                     <td className="px-3 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700">
@@ -286,36 +286,36 @@ const PatientsListPage: React.FC = () => {
                             patient.lastName.charAt(0)}
                         </div>
                         <div className="ml-3">
-                          <div className="text-sm font-medium text-neutral-900">
+                          <div className="text-sm font-medium text-slate-900">
                             {patient.firstName} {patient.lastName}
                           </div>
-                          <div className="text-xs text-neutral-500">
+                          <div className="text-xs text-slate-500">
                             ID: {patient.id}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-3 py-4 whitespace-nowrap">
-                      <div className="text-sm text-neutral-900">
+                      <div className="text-sm text-slate-900">
                         {new Date(patient.dateOfBirth).toLocaleDateString(
                           "fr-FR"
                         )}
                       </div>
-                      <div className="text-xs text-neutral-500">
+                      <div className="text-xs text-slate-500">
                         {calculateAge(patient.dateOfBirth)} ans -{" "}
                         {patient.gender === "male" ? "Homme" : "Femme"}
                       </div>
                     </td>
                     <td className="px-3 py-4 whitespace-nowrap">
-                      <div className="text-sm text-neutral-900">
+                      <div className="text-sm text-slate-900">
                         {patient.email}
                       </div>
-                      <div className="text-xs text-neutral-500">
+                      <div className="text-xs text-slate-500">
                         {patient.phone}
                       </div>
                     </td>
                     <td className="px-3 py-4 whitespace-nowrap">
-                      <div className="text-sm text-neutral-900">
+                      <div className="text-sm text-slate-900">
                         {patient.insuranceNumber}
                       </div>
                     </td>

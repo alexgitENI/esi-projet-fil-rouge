@@ -162,8 +162,6 @@ const AppointmentsCalendarPage: React.FC = () => {
   useEffect(() => {
     const generateCalendarDays = () => {
       const year = currentMonth.getFullYear();
-      const month = current;
-      const year = currentMonth.getFullYear();
       const month = currentMonth.getMonth();
 
       // Premier jour du mois
@@ -292,7 +290,7 @@ const AppointmentsCalendarPage: React.FC = () => {
         return <span className="badge badge-error">Annulé</span>;
       case "completed":
         return (
-          <span className="badge bg-neutral-100 text-neutral-800">Terminé</span>
+          <span className="badge bg-slate-100 text-slate-800">Terminé</span>
         );
       default:
         return null;
@@ -330,7 +328,7 @@ const AppointmentsCalendarPage: React.FC = () => {
     <div className="space-y-6">
       {/* En-tête */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
-        <h1 className="text-2xl font-semibold text-neutral-900">
+        <h1 className="text-2xl font-semibold text-slate-900">
           Calendrier des rendez-vous
         </h1>
         <div className="flex space-x-2">
@@ -364,7 +362,7 @@ const AppointmentsCalendarPage: React.FC = () => {
           <div className="card">
             {/* Navigation du calendrier */}
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-neutral-900">
+              <h2 className="text-lg font-semibold text-slate-900">
                 {currentMonth.toLocaleDateString("fr-FR", {
                   month: "long",
                   year: "numeric",
@@ -373,7 +371,7 @@ const AppointmentsCalendarPage: React.FC = () => {
               <div className="flex space-x-2">
                 <button
                   onClick={goToPreviousMonth}
-                  className="p-2 text-neutral-600 hover:text-primary-600 focus:outline-none"
+                  className="p-2 text-slate-600 hover:text-primary-600 focus:outline-none"
                 >
                   <svg
                     className="h-5 w-5"
@@ -392,13 +390,13 @@ const AppointmentsCalendarPage: React.FC = () => {
                 </button>
                 <button
                   onClick={goToCurrentMonth}
-                  className="p-2 text-neutral-600 hover:text-primary-600 focus:outline-none"
+                  className="p-2 text-slate-600 hover:text-primary-600 focus:outline-none"
                 >
                   Aujourd'hui
                 </button>
                 <button
                   onClick={goToNextMonth}
-                  className="p-2 text-neutral-600 hover:text-primary-600 focus:outline-none"
+                  className="p-2 text-slate-600 hover:text-primary-600 focus:outline-none"
                 >
                   <svg
                     className="h-5 w-5"
@@ -419,12 +417,12 @@ const AppointmentsCalendarPage: React.FC = () => {
             </div>
 
             {/* Grille des jours de la semaine */}
-            <div className="grid grid-cols-7 gap-px bg-neutral-200">
+            <div className="grid grid-cols-7 gap-px bg-slate-200">
               {["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map(
                 (day, index) => (
                   <div
                     key={day}
-                    className="bg-neutral-100 text-center py-2 text-sm font-medium text-neutral-600"
+                    className="bg-slate-100 text-center py-2 text-sm font-medium text-slate-600"
                   >
                     {day}
                   </div>
@@ -433,7 +431,7 @@ const AppointmentsCalendarPage: React.FC = () => {
             </div>
 
             {/* Grille des jours */}
-            <div className="grid grid-cols-7 gap-px bg-neutral-200">
+            <div className="grid grid-cols-7 gap-px bg-slate-200">
               {calendarDays.map((day, index) => (
                 <div
                   key={index}
@@ -446,13 +444,13 @@ const AppointmentsCalendarPage: React.FC = () => {
                     selectedDay.getDate() === day.date.getDate()
                       ? "ring-2 ring-primary-500 ring-inset"
                       : ""
-                  } hover:bg-neutral-50 cursor-pointer transition`}
+                  } hover:bg-slate-50 cursor-pointer transition`}
                   onClick={() => handleDayClick(day)}
                 >
                   <div className="flex flex-col h-full">
                     <div
                       className={`text-sm font-medium ${
-                        day.isToday ? "text-primary-600" : "text-neutral-900"
+                        day.isToday ? "text-primary-600" : "text-slate-900"
                       }`}
                     >
                       {day.date.getDate()}
@@ -468,7 +466,7 @@ const AppointmentsCalendarPage: React.FC = () => {
                               ? "bg-yellow-100 text-yellow-800"
                               : appointment.status === "cancelled"
                               ? "bg-red-100 text-red-800"
-                              : "bg-neutral-100 text-neutral-800"
+                              : "bg-slate-100 text-slate-800"
                           }`}
                         >
                           {formatTime(appointment.startTime)} -{" "}
@@ -476,7 +474,7 @@ const AppointmentsCalendarPage: React.FC = () => {
                         </div>
                       ))}
                       {day.appointments.length > 3 && (
-                        <div className="text-xs text-neutral-500 p-1">
+                        <div className="text-xs text-slate-500 p-1">
                           +{day.appointments.length - 3} autre(s)
                         </div>
                       )}
@@ -490,7 +488,7 @@ const AppointmentsCalendarPage: React.FC = () => {
 
         {/* Détails du jour sélectionné */}
         <div className="card">
-          <h2 className="text-lg font-semibold text-neutral-900 mb-4">
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">
             {selectedDay
               ? selectedDay.toLocaleDateString("fr-FR", {
                   weekday: "long",
@@ -502,9 +500,9 @@ const AppointmentsCalendarPage: React.FC = () => {
           </h2>
 
           {selectedDay && dayAppointments.length === 0 ? (
-            <div className="text-center py-6 text-neutral-500">
+            <div className="text-center py-6 text-slate-500">
               <svg
-                className="mx-auto h-12 w-12 text-neutral-400"
+                className="mx-auto h-12 w-12 text-slate-400"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -534,20 +532,20 @@ const AppointmentsCalendarPage: React.FC = () => {
               {dayAppointments.map((appointment) => (
                 <div
                   key={appointment.id}
-                  className="p-3 border border-neutral-100 rounded-lg hover:bg-neutral-50"
+                  className="p-3 border border-slate-100 rounded-lg hover:bg-slate-50"
                 >
                   <div className="flex justify-between items-start mb-2">
-                    <div className="text-sm font-medium text-neutral-900">
+                    <div className="text-sm font-medium text-slate-900">
                       {formatTime(appointment.startTime)} -{" "}
                       {formatTime(appointment.endTime)}
                     </div>
                     {getStatusBadge(appointment.status)}
                   </div>
-                  <div className="text-neutral-900 font-medium mb-1">
+                  <div className="text-slate-900 font-medium mb-1">
                     {appointment.patientName}
                   </div>
                   {appointment.notes && (
-                    <div className="text-sm text-neutral-600 mb-2">
+                    <div className="text-sm text-slate-600 mb-2">
                       {appointment.notes}
                     </div>
                   )}
@@ -568,7 +566,7 @@ const AppointmentsCalendarPage: React.FC = () => {
                 </div>
               ))}
               {selectedDay && (
-                <div className="pt-4 border-t border-neutral-100">
+                <div className="pt-4 border-t border-slate-100">
                   <Link
                     to={`/appointments/create?date=${
                       selectedDay.toISOString().split("T")[0]

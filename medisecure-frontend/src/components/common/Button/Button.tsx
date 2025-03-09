@@ -42,7 +42,7 @@ const Button: React.FC<ButtonProps> = ({
     secondary:
       "bg-secondary-600 text-white hover:bg-secondary-700 focus:ring-secondary-500",
     outline:
-      "border border-neutral-300 text-neutral-700 hover:bg-neutral-50 focus:ring-primary-500",
+      "border border-slate-300 text-slate-700 hover:bg-slate-50 focus:ring-primary-500",
     danger: "bg-error-500 text-white hover:bg-error-600 focus:ring-error-500",
     success:
       "bg-success-500 text-white hover:bg-success-600 focus:ring-success-500",

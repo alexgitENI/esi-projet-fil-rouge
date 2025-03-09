@@ -172,10 +172,10 @@ const DashboardPage: React.FC = () => {
     <div className="space-y-6">
       {/* En-tête */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold text-neutral-900">
+        <h1 className="text-2xl font-semibold text-slate-900">
           Tableau de bord
         </h1>
-        <div className="text-sm text-neutral-500">
+        <div className="text-sm text-slate-500">
           {new Date().toLocaleDateString("fr-FR", {
             weekday: "long",
             year: "numeric",
@@ -188,11 +188,11 @@ const DashboardPage: React.FC = () => {
       {/* Statistiques */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="card">
-          <div className="text-neutral-500 text-sm font-medium mb-2">
+          <div className="text-slate-500 text-sm font-medium mb-2">
             Patients totaux
           </div>
           <div className="flex items-end justify-between">
-            <div className="text-3xl font-bold text-neutral-900">
+            <div className="text-3xl font-bold text-slate-900">
               {stats.totalPatients}
             </div>
             <div className="text-success-500 text-sm font-medium">
@@ -202,37 +202,37 @@ const DashboardPage: React.FC = () => {
         </div>
 
         <div className="card">
-          <div className="text-neutral-500 text-sm font-medium mb-2">
+          <div className="text-slate-500 text-sm font-medium mb-2">
             Rendez-vous aujourd'hui
           </div>
           <div className="flex items-end justify-between">
-            <div className="text-3xl font-bold text-neutral-900">
+            <div className="text-3xl font-bold text-slate-900">
               {stats.totalAppointmentsToday}
             </div>
-            <div className="text-neutral-500 text-sm font-medium">
+            <div className="text-slate-500 text-sm font-medium">
               3 à venir
             </div>
           </div>
         </div>
 
         <div className="card">
-          <div className="text-neutral-500 text-sm font-medium mb-2">
+          <div className="text-slate-500 text-sm font-medium mb-2">
             Rendez-vous à venir
           </div>
           <div className="flex items-end justify-between">
-            <div className="text-3xl font-bold text-neutral-900">
+            <div className="text-3xl font-bold text-slate-900">
               {stats.upcomingAppointments}
             </div>
-            <div className="text-neutral-500 text-sm font-medium">7 jours</div>
+            <div className="text-slate-500 text-sm font-medium">7 jours</div>
           </div>
         </div>
 
         <div className="card">
-          <div className="text-neutral-500 text-sm font-medium mb-2">
+          <div className="text-slate-500 text-sm font-medium mb-2">
             Dossiers en attente
           </div>
           <div className="flex items-end justify-between">
-            <div className="text-3xl font-bold text-neutral-900">
+            <div className="text-3xl font-bold text-slate-900">
               {stats.pendingMedicalRecords}
             </div>
             <div className="text-warning-500 text-sm font-medium">
@@ -247,7 +247,7 @@ const DashboardPage: React.FC = () => {
         {/* Patients récents */}
         <div className="card overflow-hidden">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-neutral-900">
+            <h2 className="text-lg font-semibold text-slate-900">
               Patients récents
             </h2>
             <Link
@@ -261,23 +261,23 @@ const DashboardPage: React.FC = () => {
             <table className="min-w-full divide-y divide-neutral-200">
               <thead>
                 <tr>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                     Nom
                   </th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                     Date de naissance
                   </th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                     Contact
                   </th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                  <th className="px-3 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-neutral-200">
                 {recentPatients.map((patient) => (
-                  <tr key={patient.id} className="hover:bg-neutral-50">
+                  <tr key={patient.id} className="hover:bg-slate-50">
                     <td className="px-3 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700">
@@ -285,32 +285,32 @@ const DashboardPage: React.FC = () => {
                             patient.lastName.charAt(0)}
                         </div>
                         <div className="ml-3">
-                          <div className="text-sm font-medium text-neutral-900">
+                          <div className="text-sm font-medium text-slate-900">
                             {patient.firstName} {patient.lastName}
                           </div>
-                          <div className="text-xs text-neutral-500">
+                          <div className="text-xs text-slate-500">
                             {patient.gender === "male" ? "Homme" : "Femme"}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-3 py-4 whitespace-nowrap">
-                      <div className="text-sm text-neutral-900">
+                      <div className="text-sm text-slate-900">
                         {new Date(patient.dateOfBirth).toLocaleDateString(
                           "fr-FR"
                         )}
                       </div>
-                      <div className="text-xs text-neutral-500">
+                      <div className="text-xs text-slate-500">
                         {new Date().getFullYear() -
                           new Date(patient.dateOfBirth).getFullYear()}{" "}
                         ans
                       </div>
                     </td>
                     <td className="px-3 py-4 whitespace-nowrap">
-                      <div className="text-sm text-neutral-900">
+                      <div className="text-sm text-slate-900">
                         {patient.email}
                       </div>
-                      <div className="text-xs text-neutral-500">
+                      <div className="text-xs text-slate-500">
                         {patient.phone}
                       </div>
                     </td>
@@ -338,7 +338,7 @@ const DashboardPage: React.FC = () => {
         {/* Rendez-vous à venir */}
         <div className="card">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-neutral-900">
+            <h2 className="text-lg font-semibold text-slate-900">
               Rendez-vous à venir
             </h2>
             <Link
@@ -352,7 +352,7 @@ const DashboardPage: React.FC = () => {
             {upcomingAppointments.map((appointment) => (
               <div
                 key={appointment.id}
-                className="flex p-3 border border-neutral-100 rounded-lg hover:bg-neutral-50"
+                className="flex p-3 border border-slate-100 rounded-lg hover:bg-slate-50"
               >
                 <div className="mr-4 flex-shrink-0">
                   <div className="h-12 w-12 rounded-lg bg-primary-50 text-primary-700 flex items-center justify-center">
@@ -374,7 +374,7 @@ const DashboardPage: React.FC = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start">
-                    <p className="text-sm font-medium text-neutral-900 truncate">
+                    <p className="text-sm font-medium text-slate-900 truncate">
                       {appointment.patientName}
                     </p>
                     <span
@@ -389,7 +389,7 @@ const DashboardPage: React.FC = () => {
                         : "Planifié"}
                     </span>
                   </div>
-                  <p className="mt-1 text-sm text-neutral-500">
+                  <p className="mt-1 text-sm text-slate-500">
                     {formatDate(appointment.startTime)}
                   </p>
                   <div className="mt-2 flex">
@@ -399,7 +399,7 @@ const DashboardPage: React.FC = () => {
                     >
                       Détails
                     </Link>
-                    <button className="text-sm text-neutral-500 hover:text-neutral-700">
+                    <button className="text-sm text-slate-500 hover:text-slate-700">
                       Reprogrammer
                     </button>
                   </div>

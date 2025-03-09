@@ -68,7 +68,7 @@ const CreatePatientPage: React.FC = () => {
     <div className="space-y-6">
       {/* En-tête */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold text-neutral-900">
+        <h1 className="text-2xl font-semibold text-slate-900">
           Créer un nouveau patient
         </h1>
         <button
@@ -99,7 +99,7 @@ const CreatePatientPage: React.FC = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Informations personnelles */}
           <div>
-            <h2 className="text-lg font-medium text-neutral-900 mb-4">
+            <h2 className="text-lg font-medium text-slate-900 mb-4">
               Informations personnelles
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -194,7 +194,7 @@ const CreatePatientPage: React.FC = () => {
 
           {/* Coordonnées */}
           <div>
-            <h2 className="text-lg font-medium text-neutral-900 mb-4">
+            <h2 className="text-lg font-medium text-slate-900 mb-4">
               Coordonnées
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -265,7 +265,7 @@ const CreatePatientPage: React.FC = () => {
 
           {/* Informations médicales */}
           <div>
-            <h2 className="text-lg font-medium text-neutral-900 mb-4">
+            <h2 className="text-lg font-medium text-slate-900 mb-4">
               Informations médicales
             </h2>
             <div className="grid grid-cols-1 gap-6">

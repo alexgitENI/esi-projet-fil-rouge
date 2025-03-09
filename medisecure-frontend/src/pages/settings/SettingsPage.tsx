@@ -105,20 +105,20 @@ const SettingsPage: React.FC = () => {
     <div className="space-y-6">
       {/* En-tête */}
       <div>
-        <h1 className="text-2xl font-semibold text-neutral-900">Paramètres</h1>
-        <p className="mt-1 text-neutral-500">
+        <h1 className="text-2xl font-semibold text-slate-900">Paramètres</h1>
+        <p className="mt-1 text-slate-500">
           Gérez vos préférences et informations personnelles
         </p>
       </div>
 
       {/* Navigation par onglets */}
-      <div className="border-b border-neutral-200">
+      <div className="border-b border-slate-200">
         <nav className="flex -mb-px">
           <button
             className={`px-4 py-2 border-b-2 font-medium text-sm ${
               activeTab === "profile"
                 ? "border-primary-500 text-primary-600"
-                : "border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300"
+                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
             }`}
             onClick={() => setActiveTab("profile")}
           >
@@ -128,7 +128,7 @@ const SettingsPage: React.FC = () => {
             className={`px-4 py-2 border-b-2 font-medium text-sm ${
               activeTab === "password"
                 ? "border-primary-500 text-primary-600"
-                : "border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300"
+                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
             }`}
             onClick={() => setActiveTab("password")}
           >
@@ -138,7 +138,7 @@ const SettingsPage: React.FC = () => {
             className={`px-4 py-2 border-b-2 font-medium text-sm ${
               activeTab === "notifications"
                 ? "border-primary-500 text-primary-600"
-                : "border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300"
+                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
             }`}
             onClick={() => setActiveTab("notifications")}
           >
@@ -152,7 +152,7 @@ const SettingsPage: React.FC = () => {
         {/* Onglet Profil */}
         {activeTab === "profile" && (
           <div className="card">
-            <h2 className="text-lg font-medium text-neutral-900 mb-4">
+            <h2 className="text-lg font-medium text-slate-900 mb-4">
               Informations personnelles
             </h2>
 
@@ -220,7 +220,7 @@ const SettingsPage: React.FC = () => {
         {/* Onglet Mot de passe */}
         {activeTab === "password" && (
           <div className="card">
-            <h2 className="text-lg font-medium text-neutral-900 mb-4">
+            <h2 className="text-lg font-medium text-slate-900 mb-4">
               Modification du mot de passe
             </h2>
 
@@ -283,7 +283,7 @@ const SettingsPage: React.FC = () => {
         {/* Onglet Notifications */}
         {activeTab === "notifications" && (
           <div className="card">
-            <h2 className="text-lg font-medium text-neutral-900 mb-4">
+            <h2 className="text-lg font-medium text-slate-900 mb-4">
               Préférences de notifications
             </h2>
 
@@ -295,17 +295,17 @@ const SettingsPage: React.FC = () => {
                     name="notifications-email"
                     type="checkbox"
                     defaultChecked
-                    className="h-4 w-4 text-primary-600 border-neutral-300 rounded focus:ring-primary-500"
+                    className="h-4 w-4 text-primary-600 border-slate-300 rounded focus:ring-primary-500"
                   />
                 </div>
                 <div className="ml-3 text-sm">
                   <label
                     htmlFor="notifications-email"
-                    className="font-medium text-neutral-900"
+                    className="font-medium text-slate-900"
                   >
                     Notifications par email
                   </label>
-                  <p className="text-neutral-500">
+                  <p className="text-slate-500">
                     Recevoir les notifications concernant les rendez-vous et
                     autres mises à jour par email.
                   </p>
@@ -319,17 +319,17 @@ const SettingsPage: React.FC = () => {
                     name="notifications-sms"
                     type="checkbox"
                     defaultChecked
-                    className="h-4 w-4 text-primary-600 border-neutral-300 rounded focus:ring-primary-500"
+                    className="h-4 w-4 text-primary-600 border-slate-300 rounded focus:ring-primary-500"
                   />
                 </div>
                 <div className="ml-3 text-sm">
                   <label
                     htmlFor="notifications-sms"
-                    className="font-medium text-neutral-900"
+                    className="font-medium text-slate-900"
                   >
                     Notifications par SMS
                   </label>
-                  <p className="text-neutral-500">
+                  <p className="text-slate-500">
                     Recevoir des rappels de rendez-vous par SMS.
                   </p>
                 </div>
@@ -342,17 +342,17 @@ const SettingsPage: React.FC = () => {
                     name="notifications-appointments"
                     type="checkbox"
                     defaultChecked
-                    className="h-4 w-4 text-primary-600 border-neutral-300 rounded focus:ring-primary-500"
+                    className="h-4 w-4 text-primary-600 border-slate-300 rounded focus:ring-primary-500"
                   />
                 </div>
                 <div className="ml-3 text-sm">
                   <label
                     htmlFor="notifications-appointments"
-                    className="font-medium text-neutral-900"
+                    className="font-medium text-slate-900"
                   >
                     Rappels de rendez-vous
                   </label>
-                  <p className="text-neutral-500">
+                  <p className="text-slate-500">
                     Recevoir un rappel 24h avant chaque rendez-vous.
                   </p>
                 </div>
@@ -365,17 +365,17 @@ const SettingsPage: React.FC = () => {
                     name="notifications-system"
                     type="checkbox"
                     defaultChecked
-                    className="h-4 w-4 text-primary-600 border-neutral-300 rounded focus:ring-primary-500"
+                    className="h-4 w-4 text-primary-600 border-slate-300 rounded focus:ring-primary-500"
                   />
                 </div>
                 <div className="ml-3 text-sm">
                   <label
                     htmlFor="notifications-system"
-                    className="font-medium text-neutral-900"
+                    className="font-medium text-slate-900"
                   >
                     Notifications système
                   </label>
-                  <p className="text-neutral-500">
+                  <p className="text-slate-500">
                     Recevoir des notifications concernant les mises à jour du
                     système.
                   </p>

@@ -74,7 +74,7 @@ function DataTable<T>({
   if (data.length === 0) {
     return (
       <div className="w-full py-8 text-center">
-        <p className="text-neutral-500">{emptyMessage}</p>
+        <p className="text-slate-500">{emptyMessage}</p>
       </div>
     );
   }
@@ -82,13 +82,13 @@ function DataTable<T>({
   return (
     <div className={`w-full overflow-x-auto ${className}`}>
       <table className="min-w-full divide-y divide-neutral-200">
-        <thead className="bg-neutral-50">
+        <thead className="bg-slate-50">
           <tr>
             {columns.map((column, index) => (
               <th
                 key={index}
                 scope="col"
-                className={`px-3 py-3.5 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider ${
+                className={`px-3 py-3.5 text-left text-xs font-medium text-slate-500 uppercase tracking-wider ${
                   column.className || ""
                 }`}
               >
@@ -102,14 +102,14 @@ function DataTable<T>({
             <tr
               key={keyExtractor(item)}
               className={`${
-                onRowClick ? "cursor-pointer hover:bg-neutral-50" : ""
+                onRowClick ? "cursor-pointer hover:bg-slate-50" : ""
               }`}
               onClick={() => onRowClick && onRowClick(item)}
             >
               {columns.map((column, columnIndex) => (
                 <td
                   key={columnIndex}
-                  className={`px-3 py-4 whitespace-nowrap text-sm text-neutral-900 ${
+                  className={`px-3 py-4 whitespace-nowrap text-sm text-slate-900 ${
                     column.className || ""
                   }`}
                 >

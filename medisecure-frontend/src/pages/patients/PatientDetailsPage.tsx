@@ -110,10 +110,10 @@ const PatientDetailsPage: React.FC = () => {
   if (!patient) {
     return (
       <div className="text-center py-10">
-        <h2 className="text-2xl font-semibold text-neutral-900 mb-2">
+        <h2 className="text-2xl font-semibold text-slate-900 mb-2">
           Patient non trouvé
         </h2>
-        <p className="text-neutral-600 mb-6">
+        <p className="text-slate-600 mb-6">
           Le patient que vous recherchez n'existe pas ou a été supprimé.
         </p>
         <Link to="/patients" className="btn btn-primary">
@@ -132,10 +132,10 @@ const PatientDetailsPage: React.FC = () => {
             {patient.firstName.charAt(0) + patient.lastName.charAt(0)}
           </div>
           <div className="ml-4">
-            <h1 className="text-2xl font-semibold text-neutral-900">
+            <h1 className="text-2xl font-semibold text-slate-900">
               {patient.firstName} {patient.lastName}
             </h1>
-            <p className="text-neutral-500">
+            <p className="text-slate-500">
               {patient.gender === "male" ? "Homme" : "Femme"} •{" "}
               {calculateAge(patient.dateOfBirth)} ans
             </p>
@@ -161,30 +161,30 @@ const PatientDetailsPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Informations personnelles */}
         <div className="card">
-          <h2 className="text-lg font-medium text-neutral-900 mb-4">
+          <h2 className="text-lg font-medium text-slate-900 mb-4">
             Informations personnelles
           </h2>
           <div className="space-y-4">
             <div>
-              <h3 className="text-sm font-medium text-neutral-500">
+              <h3 className="text-sm font-medium text-slate-500">
                 Nom complet
               </h3>
-              <p className="mt-1 text-neutral-900">
+              <p className="mt-1 text-slate-900">
                 {patient.firstName} {patient.lastName}
               </p>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-neutral-500">
+              <h3 className="text-sm font-medium text-slate-500">
                 Date de naissance
               </h3>
-              <p className="mt-1 text-neutral-900">
+              <p className="mt-1 text-slate-900">
                 {formatDate(patient.dateOfBirth)} (
                 {calculateAge(patient.dateOfBirth)} ans)
               </p>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-neutral-500">Genre</h3>
-              <p className="mt-1 text-neutral-900">
+              <h3 className="text-sm font-medium text-slate-500">Genre</h3>
+              <p className="mt-1 text-slate-900">
                 {patient.gender === "male"
                   ? "Homme"
                   : patient.gender === "female"
@@ -193,18 +193,18 @@ const PatientDetailsPage: React.FC = () => {
               </p>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-neutral-500">
+              <h3 className="text-sm font-medium text-slate-500">
                 Numéro d'assurance
               </h3>
-              <p className="mt-1 text-neutral-900">
+              <p className="mt-1 text-slate-900">
                 {patient.insuranceNumber || "Non renseigné"}
               </p>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-neutral-500">
+              <h3 className="text-sm font-medium text-slate-500">
                 Dossier créé le
               </h3>
-              <p className="mt-1 text-neutral-900">
+              <p className="mt-1 text-slate-900">
                 {formatDate(patient.createdAt)}
               </p>
             </div>
@@ -213,27 +213,27 @@ const PatientDetailsPage: React.FC = () => {
 
         {/* Coordonnées */}
         <div className="card">
-          <h2 className="text-lg font-medium text-neutral-900 mb-4">
+          <h2 className="text-lg font-medium text-slate-900 mb-4">
             Coordonnées
           </h2>
           <div className="space-y-4">
             <div>
-              <h3 className="text-sm font-medium text-neutral-500">Email</h3>
-              <p className="mt-1 text-neutral-900">
+              <h3 className="text-sm font-medium text-slate-500">Email</h3>
+              <p className="mt-1 text-slate-900">
                 {patient.email || "Non renseigné"}
               </p>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-neutral-500">
+              <h3 className="text-sm font-medium text-slate-500">
                 Téléphone
               </h3>
-              <p className="mt-1 text-neutral-900">
+              <p className="mt-1 text-slate-900">
                 {patient.phone || "Non renseigné"}
               </p>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-neutral-500">Adresse</h3>
-              <p className="mt-1 text-neutral-900">
+              <h3 className="text-sm font-medium text-slate-500">Adresse</h3>
+              <p className="mt-1 text-slate-900">
                 {patient.address || "Non renseignée"}
               </p>
             </div>
@@ -242,7 +242,7 @@ const PatientDetailsPage: React.FC = () => {
 
         {/* Antécédents médicaux */}
         <div className="card">
-          <h2 className="text-lg font-medium text-neutral-900 mb-4">
+          <h2 className="text-lg font-medium text-slate-900 mb-4">
             Antécédents médicaux
           </h2>
           {patient.medicalHistory ? (
@@ -252,7 +252,7 @@ const PatientDetailsPage: React.FC = () => {
               ))}
             </div>
           ) : (
-            <p className="text-neutral-500">
+            <p className="text-slate-500">
               Aucun antécédent médical renseigné
             </p>
           )}
@@ -262,7 +262,7 @@ const PatientDetailsPage: React.FC = () => {
       {/* Rendez-vous récents */}
       <div className="card">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-medium text-neutral-900">
+          <h2 className="text-lg font-medium text-slate-900">
             Rendez-vous récents
           </h2>
           <Link
@@ -272,9 +272,9 @@ const PatientDetailsPage: React.FC = () => {
             Voir tous
           </Link>
         </div>
-        <div className="text-center py-6 text-neutral-500">
+        <div className="text-center py-6 text-slate-500">
           <svg
-            className="mx-auto h-12 w-12 text-neutral-400"
+            className="mx-auto h-12 w-12 text-slate-400"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -302,7 +302,7 @@ const PatientDetailsPage: React.FC = () => {
       {/* Documents médicaux */}
       <div className="card">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-medium text-neutral-900">
+          <h2 className="text-lg font-medium text-slate-900">
             Documents médicaux
           </h2>
           <Link
@@ -312,9 +312,9 @@ const PatientDetailsPage: React.FC = () => {
             Voir tous
           </Link>
         </div>
-        <div className="text-center py-6 text-neutral-500">
+        <div className="text-center py-6 text-slate-500">
           <svg
-            className="mx-auto h-12 w-12 text-neutral-400"
+            className="mx-auto h-12 w-12 text-slate-400"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"

@@ -22,7 +22,7 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon, label }) => {
         `flex items-center px-4 py-2 text-sm font-medium rounded-md ${
           isActive
             ? "bg-primary-50 text-primary-700"
-            : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
         }`
       }
     >
@@ -36,9 +36,9 @@ const Sidebar: React.FC<SidebarProps> = ({ mobile = false, onClose }) => {
   const { user } = useAuth();
 
   return (
-    <div className="flex flex-col h-full border-r border-neutral-200 bg-white">
+    <div className="flex flex-col h-full border-r border-slate-200 bg-white">
       {/* En-tête sidebar */}
-      <div className="flex items-center justify-between h-16 px-4 border-b border-neutral-200">
+      <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200">
         <Link
           to="/"
           className="text-primary-600 font-display font-bold text-xl"
@@ -48,7 +48,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobile = false, onClose }) => {
         {mobile && onClose && (
           <button
             type="button"
-            className="text-neutral-500 hover:text-neutral-700"
+            className="text-slate-500 hover:text-slate-700"
             onClick={onClose}
           >
             <span className="sr-only">Fermer le menu</span>
@@ -184,16 +184,16 @@ const Sidebar: React.FC<SidebarProps> = ({ mobile = false, onClose }) => {
       </div>
 
       {/* Information utilisateur */}
-      <div className="p-4 border-t border-neutral-200">
+      <div className="p-4 border-t border-slate-200">
         <div className="flex items-center">
           <div className="h-8 w-8 rounded-full bg-primary-600 flex items-center justify-center text-white">
             {user?.username.charAt(0).toUpperCase()}
           </div>
           <div className="ml-3">
-            <p className="text-sm font-medium text-neutral-700">
+            <p className="text-sm font-medium text-slate-700">
               {user?.username}
             </p>
-            <p className="text-xs text-neutral-500">{user?.role}</p>
+            <p className="text-xs text-slate-500">{user?.role}</p>
           </div>
         </div>
       </div>

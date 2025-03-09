@@ -20,7 +20,7 @@ describe("Button Component", () => {
     expect(screen.getByRole("button")).toHaveClass("bg-secondary-600");
 
     rerender(<Button variant="outline">Outline</Button>);
-    expect(screen.getByRole("button")).toHaveClass("border-neutral-300");
+    expect(screen.getByRole("button")).toHaveClass("border-slate-300");
 
     rerender(<Button variant="danger">Danger</Button>);
     expect(screen.getByRole("button")).toHaveClass("bg-error-500");

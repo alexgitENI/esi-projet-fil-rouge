@@ -26,7 +26,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
         {/* Hamburger menu pour mobile */}
         <button
           type="button"
-          className="lg:hidden text-neutral-700 hover:text-primary-600 focus:outline-none"
+          className="lg:hidden text-slate-700 hover:text-primary-600 focus:outline-none"
           onClick={onToggleSidebar}
         >
           <span className="sr-only">Ouvrir le menu</span>
@@ -62,7 +62,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
           {/* Notifications */}
           <button
             type="button"
-            className="text-neutral-700 hover:text-primary-600 focus:outline-none"
+            className="text-slate-700 hover:text-primary-600 focus:outline-none"
           >
             <span className="sr-only">Voir les notifications</span>
             <svg
@@ -91,11 +91,11 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
                   <div className="h-8 w-8 rounded-full bg-primary-600 flex items-center justify-center text-white">
                     {user?.username.charAt(0).toUpperCase()}
                   </div>
-                  <span className="hidden md:inline-block font-medium text-neutral-700">
+                  <span className="hidden md:inline-block font-medium text-slate-700">
                     {user?.username}
                   </span>
                   <svg
-                    className="h-5 w-5 text-neutral-400"
+                    className="h-5 w-5 text-slate-400"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
                     fill="currentColor"
@@ -127,8 +127,8 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
                         to="/profile"
                         className={`${
                           active
-                            ? "bg-neutral-100 text-neutral-900"
-                            : "text-neutral-700"
+                            ? "bg-slate-100 text-slate-900"
+                            : "text-slate-700"
                         } block px-4 py-2 text-sm`}
                       >
                         Mon profil
@@ -141,8 +141,8 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
                         to="/settings"
                         className={`${
                           active
-                            ? "bg-neutral-100 text-neutral-900"
-                            : "text-neutral-700"
+                            ? "bg-slate-100 text-slate-900"
+                            : "text-slate-700"
                         } block px-4 py-2 text-sm`}
                       >
                         Paramètres
@@ -157,8 +157,8 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
                         onClick={handleLogout}
                         className={`${
                           active
-                            ? "bg-neutral-100 text-neutral-900"
-                            : "text-neutral-700"
+                            ? "bg-slate-100 text-slate-900"
+                            : "text-slate-700"
                         } block w-full text-left px-4 py-2 text-sm`}
                       >
                         Déconnexion

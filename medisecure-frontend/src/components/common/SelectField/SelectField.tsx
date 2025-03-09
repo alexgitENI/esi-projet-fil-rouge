@@ -44,7 +44,7 @@ const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(
         {label && (
           <label
             htmlFor={id}
-            className="block text-sm font-medium text-neutral-700 mb-1"
+            className="block text-sm font-medium text-slate-700 mb-1"
           >
             {label}
           </label>
@@ -60,7 +60,7 @@ const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(
               ${
                 error
                   ? "border-error-500 focus:border-error-500 focus:ring-error-500"
-                  : "border-neutral-300 focus:border-primary-500 focus:ring-primary-500"
+                  : "border-slate-300 focus:border-primary-500 focus:ring-primary-500"
               }
               appearance-none bg-white
             `}
@@ -77,7 +77,7 @@ const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(
               </option>
             ))}
           </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-neutral-500">
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
             <svg
               className="h-5 w-5"
               fill="none"
@@ -96,7 +96,7 @@ const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(
         </div>
         {error && <p className="mt-1 text-sm text-error-500">{error}</p>}
         {helperText && !error && (
-          <p className="mt-1 text-sm text-neutral-500">{helperText}</p>
+          <p className="mt-1 text-sm text-slate-500">{helperText}</p>
         )}
       </div>
     );

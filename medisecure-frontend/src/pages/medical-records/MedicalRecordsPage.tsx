@@ -181,16 +181,16 @@ const MedicalRecordsPage: React.FC = () => {
       {/* En-tête */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-neutral-900">
+          <h1 className="text-2xl font-semibold text-slate-900">
             Dossiers médicaux
             {patient && (
-              <span className="text-neutral-500 text-lg ml-2">
+              <span className="text-slate-500 text-lg ml-2">
                 - {patient.firstName} {patient.lastName}
               </span>
             )}
           </h1>
           {patient && (
-            <p className="text-neutral-500">
+            <p className="text-slate-500">
               Né(e) le{" "}
               {new Date(patient.dateOfBirth).toLocaleDateString("fr-FR")}
             </p>
@@ -212,7 +212,7 @@ const MedicalRecordsPage: React.FC = () => {
 
       {/* Tableau des dossiers médicaux */}
       <div className="card">
-        <h2 className="text-lg font-medium text-neutral-900 mb-4">
+        <h2 className="text-lg font-medium text-slate-900 mb-4">
           Liste des dossiers médicaux
         </h2>
 

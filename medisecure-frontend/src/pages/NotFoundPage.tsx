@@ -4,16 +4,16 @@ import { Link } from 'react-router-dom';
 
 const NotFoundPage: React.FC = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full text-center">
         <div className="mb-6">
           <h1 className="text-9xl font-display font-bold text-primary-600">
             404
           </h1>
-          <h2 className="mt-2 text-2xl font-bold text-neutral-900">
+          <h2 className="mt-2 text-2xl font-bold text-slate-900">
             Page non trouvée
           </h2>
-          <p className="mt-2 text-neutral-600">
+          <p className="mt-2 text-slate-600">
             La page que vous recherchez n'existe pas ou a été déplacée.
           </p>
         </div>

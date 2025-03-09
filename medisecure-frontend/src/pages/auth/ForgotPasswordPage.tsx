@@ -49,16 +49,16 @@ const ForgotPasswordPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
           <h1 className="text-center text-3xl font-display font-bold text-primary-600">
             MediSecure
           </h1>
-          <h2 className="mt-6 text-center text-2xl font-bold text-neutral-900">
+          <h2 className="mt-6 text-center text-2xl font-bold text-slate-900">
             Mot de passe oublié
           </h2>
-          <p className="mt-2 text-center text-sm text-neutral-600">
+          <p className="mt-2 text-center text-sm text-slate-600">
             Saisissez votre adresse email pour recevoir des instructions de
             réinitialisation.
           </p>
@@ -81,10 +81,10 @@ const ForgotPasswordPage: React.FC = () => {
                   d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <h3 className="mt-4 text-lg font-medium text-neutral-900">
+              <h3 className="mt-4 text-lg font-medium text-slate-900">
                 Email envoyé
               </h3>
-              <p className="mt-2 text-sm text-neutral-600">
+              <p className="mt-2 text-sm text-slate-600">
                 Si un compte existe avec cette adresse email, vous recevrez des
                 instructions pour réinitialiser votre mot de passe.
               </p>

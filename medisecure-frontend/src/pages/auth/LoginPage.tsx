@@ -43,13 +43,13 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
           <h1 className="text-center text-3xl font-display font-bold text-primary-600">
             MediSecure
           </h1>
-          <h2 className="mt-6 text-center text-2xl font-bold text-neutral-900">
+          <h2 className="mt-6 text-center text-2xl font-bold text-slate-900">
             Connectez-vous à votre compte
           </h2>
         </div>

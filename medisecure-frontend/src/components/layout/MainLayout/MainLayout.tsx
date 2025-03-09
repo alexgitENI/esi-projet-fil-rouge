@@ -13,7 +13,7 @@ const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-neutral-50">
+    <div className="flex h-screen bg-slate-50">
       {/* Sidebar pour mobile (overlay) */}
       <div
         className={`${
@@ -21,7 +21,7 @@ const MainLayout: React.FC = () => {
         } fixed inset-0 z-40 lg:hidden`}
       >
         <div
-          className="fixed inset-0 bg-neutral-900 bg-opacity-50"
+          className="fixed inset-0 bg-slate-900 bg-opacity-50"
           onClick={toggleSidebar}
           aria-hidden="true"
         ></div>
@@ -40,7 +40,7 @@ const MainLayout: React.FC = () => {
       {/* Contenu principal */}
       <div className="flex flex-col flex-1 overflow-hidden">
         <Header onToggleSidebar={toggleSidebar} />
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-neutral-50">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50">
           <Outlet />
         </main>
       </div>

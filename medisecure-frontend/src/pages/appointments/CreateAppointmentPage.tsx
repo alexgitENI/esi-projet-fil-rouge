@@ -229,7 +229,7 @@ const CreateAppointmentPage: React.FC = () => {
     <div className="space-y-6">
       {/* En-tête */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold text-neutral-900">
+        <h1 className="text-2xl font-semibold text-slate-900">
           Créer un nouveau rendez-vous
         </h1>
         <button
@@ -264,7 +264,7 @@ const CreateAppointmentPage: React.FC = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Informations de base */}
           <div>
-            <h2 className="text-lg font-medium text-neutral-900 mb-4">
+            <h2 className="text-lg font-medium text-slate-900 mb-4">
               Informations du rendez-vous
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -335,7 +335,7 @@ const CreateAppointmentPage: React.FC = () => {
 
           {/* Notes */}
           <div>
-            <h2 className="text-lg font-medium text-neutral-900 mb-4">Notes</h2>
+            <h2 className="text-lg font-medium text-slate-900 mb-4">Notes</h2>
             <div>
               <label htmlFor="notes" className="label">
                 Notes pour le rendez-vous

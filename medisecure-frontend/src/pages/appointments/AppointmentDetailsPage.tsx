@@ -152,10 +152,10 @@ const AppointmentDetailsPage: React.FC = () => {
   if (!appointment) {
     return (
       <div className="text-center py-10">
-        <h2 className="text-2xl font-semibold text-neutral-900 mb-2">
+        <h2 className="text-2xl font-semibold text-slate-900 mb-2">
           Rendez-vous non trouvé
         </h2>
-        <p className="text-neutral-600 mb-6">
+        <p className="text-slate-600 mb-6">
           Le rendez-vous que vous recherchez n'existe pas ou a été supprimé.
         </p>
         <Button variant="primary" onClick={() => navigate("/appointments")}>
@@ -178,9 +178,9 @@ const AppointmentDetailsPage: React.FC = () => {
       case "cancelled":
         return "bg-red-100 text-red-800";
       case "completed":
-        return "bg-neutral-100 text-neutral-800";
+        return "bg-slate-100 text-slate-800";
       default:
-        return "bg-neutral-100 text-neutral-800";
+        return "bg-slate-100 text-slate-800";
     }
   };
 
@@ -205,10 +205,10 @@ const AppointmentDetailsPage: React.FC = () => {
       {/* En-tête */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-neutral-900">
+          <h1 className="text-2xl font-semibold text-slate-900">
             Détails du rendez-vous
           </h1>
-          <p className="text-neutral-500">
+          <p className="text-slate-500">
             {startDateTime.date} • {startDateTime.time} - {endDateTime.time}
           </p>
         </div>
@@ -230,7 +230,7 @@ const AppointmentDetailsPage: React.FC = () => {
         {/* Informations principales */}
         <div className="card lg:col-span-2">
           <div className="flex justify-between items-start mb-4">
-            <h2 className="text-lg font-medium text-neutral-900">
+            <h2 className="text-lg font-medium text-slate-900">
               Informations du rendez-vous
             </h2>
             <span
@@ -245,10 +245,10 @@ const AppointmentDetailsPage: React.FC = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <h3 className="text-sm font-medium text-neutral-500">
+                <h3 className="text-sm font-medium text-slate-500">
                   Patient
                 </h3>
-                <p className="mt-1 text-neutral-900">
+                <p className="mt-1 text-slate-900">
                   {(appointment as any).patientName}
                 </p>
                 <Link
@@ -260,10 +260,10 @@ const AppointmentDetailsPage: React.FC = () => {
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-neutral-500">
+                <h3 className="text-sm font-medium text-slate-500">
                   Médecin
                 </h3>
-                <p className="mt-1 text-neutral-900">
+                <p className="mt-1 text-slate-900">
                   {(appointment as any).doctorName}
                 </p>
               </div>
@@ -271,32 +271,32 @@ const AppointmentDetailsPage: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <h3 className="text-sm font-medium text-neutral-500">Date</h3>
-                <p className="mt-1 text-neutral-900">{startDateTime.date}</p>
+                <h3 className="text-sm font-medium text-slate-500">Date</h3>
+                <p className="mt-1 text-slate-900">{startDateTime.date}</p>
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-neutral-500">
+                <h3 className="text-sm font-medium text-slate-500">
                   Horaire
                 </h3>
-                <p className="mt-1 text-neutral-900">
+                <p className="mt-1 text-slate-900">
                   {startDateTime.time} - {endDateTime.time}
                 </p>
               </div>
             </div>
 
             <div>
-              <h3 className="text-sm font-medium text-neutral-500">
+              <h3 className="text-sm font-medium text-slate-500">
                 Motif du rendez-vous
               </h3>
-              <p className="mt-1 text-neutral-900">
+              <p className="mt-1 text-slate-900">
                 {appointment.reason || "Non spécifié"}
               </p>
             </div>
 
             <div>
-              <h3 className="text-sm font-medium text-neutral-500">Notes</h3>
-              <div className="mt-1 text-neutral-900 whitespace-pre-line">
+              <h3 className="text-sm font-medium text-slate-500">Notes</h3>
+              <div className="mt-1 text-slate-900 whitespace-pre-line">
                 {appointment.notes || "Aucune note"}
               </div>
             </div>
@@ -305,7 +305,7 @@ const AppointmentDetailsPage: React.FC = () => {
 
         {/* Actions et historique */}
         <div className="card">
-          <h2 className="text-lg font-medium text-neutral-900 mb-4">Actions</h2>
+          <h2 className="text-lg font-medium text-slate-900 mb-4">Actions</h2>
 
           <div className="space-y-4">
             {appointment.status === "scheduled" && (
@@ -355,8 +355,8 @@ const AppointmentDetailsPage: React.FC = () => {
             </Link>
           </div>
 
-          <div className="mt-6 pt-6 border-t border-neutral-200">
-            <h3 className="text-sm font-medium text-neutral-500 mb-3">
+          <div className="mt-6 pt-6 border-t border-slate-200">
+            <h3 className="text-sm font-medium text-slate-500 mb-3">
               Historique
             </h3>
 
@@ -366,10 +366,10 @@ const AppointmentDetailsPage: React.FC = () => {
                   <span className="h-3 w-3 rounded-full bg-green-600"></span>
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-neutral-900">
+                  <p className="text-sm font-medium text-slate-900">
                     Rendez-vous créé
                   </p>
-                  <p className="text-xs text-neutral-500">
+                  <p className="text-xs text-slate-500">
                     {new Date(appointment.createdAt).toLocaleDateString(
                       "fr-FR",
                       {
@@ -390,10 +390,10 @@ const AppointmentDetailsPage: React.FC = () => {
                     <span className="h-3 w-3 rounded-full bg-blue-600"></span>
                   </div>
                   <div className="ml-3">
-                    <p className="text-sm font-medium text-neutral-900">
+                    <p className="text-sm font-medium text-slate-900">
                       Rendez-vous mis à jour
                     </p>
-                    <p className="text-xs text-neutral-500">
+                    <p className="text-xs text-slate-500">
                       {new Date(appointment.updatedAt).toLocaleDateString(
                         "fr-FR",
                         {

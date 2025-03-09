@@ -155,10 +155,10 @@ const EditPatientPage: React.FC = () => {
   if (!patient) {
     return (
       <div className="text-center py-10">
-        <h2 className="text-2xl font-semibold text-neutral-900 mb-2">
+        <h2 className="text-2xl font-semibold text-slate-900 mb-2">
           Patient non trouvé
         </h2>
-        <p className="text-neutral-600 mb-6">
+        <p className="text-slate-600 mb-6">
           Le patient que vous cherchez n'existe pas ou a été supprimé.
         </p>
         <Button variant="primary" onClick={() => navigate("/patients")}>
@@ -172,7 +172,7 @@ const EditPatientPage: React.FC = () => {
     <div className="space-y-6">
       {/* En-tête */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold text-neutral-900">
+        <h1 className="text-2xl font-semibold text-slate-900">
           Modifier le patient
         </h1>
         <button
@@ -207,7 +207,7 @@ const EditPatientPage: React.FC = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Informations personnelles */}
           <div>
-            <h2 className="text-lg font-medium text-neutral-900 mb-4">
+            <h2 className="text-lg font-medium text-slate-900 mb-4">
               Informations personnelles
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -253,7 +253,7 @@ const EditPatientPage: React.FC = () => {
 
           {/* Coordonnées */}
           <div>
-            <h2 className="text-lg font-medium text-neutral-900 mb-4">
+            <h2 className="text-lg font-medium text-slate-900 mb-4">
               Coordonnées
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -286,7 +286,7 @@ const EditPatientPage: React.FC = () => {
 
           {/* Informations médicales */}
           <div>
-            <h2 className="text-lg font-medium text-neutral-900 mb-4">
+            <h2 className="text-lg font-medium text-slate-900 mb-4">
               Informations médicales
             </h2>
             <div className="grid grid-cols-1 gap-6">
