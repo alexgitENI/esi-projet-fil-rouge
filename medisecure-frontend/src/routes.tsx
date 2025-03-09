@@ -1,4 +1,5 @@
-import { lazy, Suspense } from "react";
+// src/routes.tsx - Mise à jour avec les nouvelles routes
+import { JSX, lazy, Suspense } from "react";
 import { Navigate, useRoutes } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 
@@ -9,11 +10,20 @@ import MainLayout from "./components/layout/MainLayout/MainLayout";
 import LoadingScreen from "./components/common/LoadingScreen/LoadingScreen";
 
 // Lazy-loaded pages
+const SettingsPage = lazy(() => import("./pages/settings/SettingsPage"));
+const MedicalRecordsPage = lazy(
+  () => import("./pages/medical-records/MedicalRecordsPage")
+);
+const UploadDocumentPage = lazy(
+  () => import("./pages/medical-records/UploadDocumentPage")
+);
 const Dashboard = lazy(() => import("./pages/dashboard/DashboardPage"));
 const LoginPage = lazy(() => import("./pages/auth/LoginPage"));
 const ForgotPasswordPage = lazy(
   () => import("./pages/auth/ForgotPasswordPage")
 );
+
+// Patients
 const PatientListPage = lazy(() => import("./pages/patients/PatientsListPage"));
 const PatientDetailsPage = lazy(
   () => import("./pages/patients/PatientDetailsPage")
@@ -21,9 +31,20 @@ const PatientDetailsPage = lazy(
 const CreatePatientPage = lazy(
   () => import("./pages/patients/CreatePatientPage")
 );
+const EditPatientPage = lazy(() => import("./pages/patients/EditPatientPage"));
+
+// Appointments
 const AppointmentsCalendarPage = lazy(
   () => import("./pages/appointments/AppointmentsCalendarPage")
 );
+const AppointmentDetailsPage = lazy(
+  () => import("./pages/appointments/AppointmentDetailsPage")
+);
+const CreateAppointmentPage = lazy(
+  () => import("./pages/appointments/CreateAppointmentPage")
+);
+
+// Settings & Others
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
 const RouteProgress = ({ children }: { children: React.ReactNode }) => {
@@ -102,6 +123,7 @@ const AppRoutes = () => {
             </RouteProgress>
           ),
         },
+        // Routes Patients
         {
           path: "patients",
           element: (
@@ -127,10 +149,75 @@ const AppRoutes = () => {
           ),
         },
         {
+          path: "patients/:id/edit",
+          element: (
+            <RouteProgress>
+              <EditPatientPage />
+            </RouteProgress>
+          ),
+        },
+        // Routes Rendez-vous
+        {
           path: "appointments",
           element: (
             <RouteProgress>
               <AppointmentsCalendarPage />
+            </RouteProgress>
+          ),
+        },
+        {
+          path: "appointments/create",
+          element: (
+            <RouteProgress>
+              <CreateAppointmentPage />
+            </RouteProgress>
+          ),
+        },
+        {
+          path: "appointments/:id",
+          element: (
+            <RouteProgress>
+              <AppointmentDetailsPage />
+            </RouteProgress>
+          ),
+        },
+        {
+          path: "settings",
+          element: (
+            <RouteProgress>
+              <SettingsPage />
+            </RouteProgress>
+          ),
+        },
+        {
+          path: "medical-records",
+          element: (
+            <RouteProgress>
+              <MedicalRecordsPage />
+            </RouteProgress>
+          ),
+        },
+        {
+          path: "medical-records/:recordId",
+          element: (
+            <RouteProgress>
+              <MedicalRecordsPage />
+            </RouteProgress>
+          ),
+        },
+        {
+          path: "medical-records/upload",
+          element: (
+            <RouteProgress>
+              <UploadDocumentPage />
+            </RouteProgress>
+          ),
+        },
+        {
+          path: "medical-records/:recordId/upload",
+          element: (
+            <RouteProgress>
+              <UploadDocumentPage />
             </RouteProgress>
           ),
         },
