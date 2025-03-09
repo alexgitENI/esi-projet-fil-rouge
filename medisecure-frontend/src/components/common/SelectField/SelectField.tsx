@@ -14,6 +14,7 @@ export interface SelectFieldProps
   options: SelectOption[];
   size?: "sm" | "md" | "lg";
   fullWidth?: boolean;
+  placeholder?: string;
 }
 
 const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(
