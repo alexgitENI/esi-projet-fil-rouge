@@ -130,7 +130,18 @@ class ApiClient {
     data?: any,
     config?: AxiosRequestConfig
   ): Promise<T> {
+    // Debug pour l'authentification
+    if (url === ENDPOINTS.AUTH.LOGIN) {
+      console.log("Envoi de la demande d'authentification:", data);
+    }
+
     const response = await this.axiosInstance.post<T>(url, data, config);
+
+    // Debug pour l'authentification
+    if (url === ENDPOINTS.AUTH.LOGIN) {
+      console.log("Réponse d'authentification reçue:", response.data);
+    }
+
     return response.data;
   }
 

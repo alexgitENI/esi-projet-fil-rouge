@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
+import Alert from "../../components/common/Alert/Alert";
 
 // Schéma de validation du formulaire
 const loginSchema = z.object({
@@ -19,6 +20,7 @@ const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const {
     register,
@@ -31,12 +33,24 @@ const LoginPage: React.FC = () => {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setIsSubmitting(true);
+      setError(null);
+
+      console.log("Tentative de connexion avec:", data);
+
       await login(data);
+
       toast.success("Connexion réussie !");
       navigate("/dashboard");
-    } catch (error) {
-      console.error("Login error:", error);
-      toast.error("Échec de connexion. Veuillez vérifier vos identifiants.");
+    } catch (error: any) {
+      console.error("Erreur de connexion:", error);
+
+      // Extraire le message d'erreur de la réponse API si disponible
+      const errorMessage =
+        error.response?.data?.detail ||
+        "Échec de connexion. Veuillez vérifier vos identifiants.";
+
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -54,6 +68,15 @@ const LoginPage: React.FC = () => {
           </h2>
         </div>
         <div className="mt-8 bg-white py-8 px-4 shadow-card sm:rounded-lg sm:px-10">
+          {error && (
+            <Alert
+              variant="error"
+              message={error}
+              onClose={() => setError(null)}
+              className="mb-6"
+            />
+          )}
+
           <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             <div>
               <label htmlFor="username" className="label">
@@ -147,6 +170,16 @@ const LoginPage: React.FC = () => {
               </button>
             </div>
           </form>
+
+          <div className="mt-6 text-center text-sm">
+            <p className="text-slate-600">
+              Utilisateur par défaut:{" "}
+              <span className="font-semibold">admin@medisecure.com</span>
+            </p>
+            <p className="text-slate-600">
+              Mot de passe: <span className="font-semibold">Admin123!</span>
+            </p>
+          </div>
         </div>
       </div>
     </div>

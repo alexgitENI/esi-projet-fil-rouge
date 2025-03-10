@@ -1,14 +1,5 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  ReactNode,
-} from "react";
-import authService, {
-  LoginCredentials,
-  LoginResponse,
-} from "../api/services/authService";
+import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import authService, { LoginCredentials, LoginResponse } from "../api/services/authService";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -38,7 +29,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const checkAuthentication = async () => {
       try {
         setLoading(true);
-        // Récupérer l'utilisateur à partir du localStorage ou d'une API
+        // Récupérer l'utilisateur à partir du localStorage
         const userString = localStorage.getItem("user");
         if (userString) {
           setUser(JSON.parse(userString));
@@ -64,7 +55,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const response = await authService.login(credentials);
 
       // Stocker les informations utilisateur
-      localStorage.setItem("user", JSON.stringify(response.user));
       setUser(response.user);
       setIsAuthenticated(true);
     } catch (err) {
@@ -82,7 +72,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       await authService.logout();
       setUser(null);
       setIsAuthenticated(false);
-      localStorage.removeItem("user");
     } catch (err) {
       console.error("Logout error:", err);
     } finally {

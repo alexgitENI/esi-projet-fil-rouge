@@ -15,6 +15,8 @@ from api.middlewares.authentication_middleware import AuthenticationMiddleware
 
 # Importer les routers
 from patient_management.infrastructure.adapters.primary.controllers.patient_controller import router as patient_router
+# Importer le nouveau router d'authentification
+from api.controllers.auth_controller import router as auth_router
 
 load_dotenv()
 
@@ -46,6 +48,7 @@ app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
 # Enregistrement des routers
 app.include_router(patient_router)
+app.include_router(auth_router)  # Ajouter le router d'authentification
 
 @app.get("/api/health")
 async def health_check():
