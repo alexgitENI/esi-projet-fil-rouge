@@ -8,7 +8,7 @@ services:
     volumes:
       - .:/app
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/medisecure
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/medisecure
       - ENVIRONMENT=development
     depends_on:
       db:

@@ -48,7 +48,6 @@ class PatientModel(Base):
     
     # Relations
     user = relationship("UserModel", foreign_keys=[user_id])
-    appointments = relationship("AppointmentModel", back_populates="patient")
-    
+    appointments = relationship("AppointmentModel", back_populates="patient")    
     def __repr__(self):
         return f"<Patient {self.first_name} {self.last_name}>"
