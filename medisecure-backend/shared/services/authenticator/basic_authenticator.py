@@ -4,6 +4,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 import os
 from dotenv import load_dotenv
+import traceback
 
 from shared.ports.primary.authenticator_protocol import AuthenticatorProtocol
 
@@ -44,9 +45,14 @@ class BasicAuthenticator(AuthenticatorProtocol):
             expire = datetime.utcnow() + timedelta(minutes=self.access_token_expire_minutes)
         
         to_encode.update({"exp": expire})
-        encoded_jwt = jwt.encode(to_encode, self.jwt_secret_key, algorithm=self.algorithm)
         
-        return encoded_jwt
+        try:
+            encoded_jwt = jwt.encode(to_encode, self.jwt_secret_key, algorithm=self.algorithm)
+            return encoded_jwt
+        except Exception as e:
+            print(f"Erreur lors de la création du token: {str(e)}")
+            print(traceback.format_exc())
+            raise
     
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         """
@@ -59,7 +65,15 @@ class BasicAuthenticator(AuthenticatorProtocol):
         Returns:
             bool: True si le mot de passe correspond, False sinon
         """
-        return self.pwd_context.verify(plain_password, hashed_password)
+        try:
+            print(f"Vérification du mot de passe. Mot de passe en clair: {plain_password}, Hash: {hashed_password}")
+            result = self.pwd_context.verify(plain_password, hashed_password)
+            print(f"Résultat de la vérification: {result}")
+            return result
+        except Exception as e:
+            print(f"Erreur lors de la vérification du mot de passe: {str(e)}")
+            print(traceback.format_exc())
+            raise
     
     def get_password_hash(self, password: str) -> str:
         """
@@ -71,4 +85,9 @@ class BasicAuthenticator(AuthenticatorProtocol):
         Returns:
             str: Le hash du mot de passe
         """
-        return self.pwd_context.hash(password)
+        try:
+            return self.pwd_context.hash(password)
+        except Exception as e:
+            print(f"Erreur lors du hachage du mot de passe: {str(e)}")
+            print(traceback.format_exc())
+            raise
