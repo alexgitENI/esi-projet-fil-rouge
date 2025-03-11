@@ -2,19 +2,12 @@ import axios, {
   AxiosError,
   AxiosInstance,
   AxiosRequestConfig,
-  AxiosResponse,
 } from "axios";
 import { API_URL, ENDPOINTS } from "./endpoints";
-
-// Type pour le token de refresh
-interface RefreshToken {
-  refresh_token: string;
-}
 
 class ApiClient {
   private static instance: ApiClient;
   private axiosInstance: AxiosInstance;
-  private isRefreshing = false;
   private refreshSubscribers: ((token: string) => void)[] = [];
 
   private constructor() {
@@ -53,58 +46,33 @@ class ApiClient {
     this.axiosInstance.interceptors.response.use(
       (response) => response,
       async (error: AxiosError) => {
-        const originalRequest = error.config as AxiosRequestConfig & {
-          _retry?: boolean;
-        };
-
-        // Si l'erreur est 401 et que nous n'avons pas déjà essayé de rafraîchir le token
-        if (error.response?.status === 401 && !originalRequest._retry) {
-          if (this.isRefreshing) {
-            // Si nous sommes déjà en train de rafraîchir, nous ajoutons la requête à la file d'attente
-            return new Promise<AxiosResponse>((resolve) => {
-              this.refreshSubscribers.push((token: string) => {
-                if (originalRequest.headers) {
-                  originalRequest.headers.Authorization = `Bearer ${token}`;
-                }
-                resolve(this.axiosInstance(originalRequest));
-              });
-            });
-          }
-
-          originalRequest._retry = true;
-          this.isRefreshing = true;
-
-          try {
-            const refreshToken = localStorage.getItem("refresh_token");
-
-            if (!refreshToken) {
-              this.logout();
-              return Promise.reject(error);
-            }
-
-            const response = await this.axiosInstance.post<{
-              access_token: string;
-            }>(ENDPOINTS.AUTH.REFRESH, { refresh_token: refreshToken });
-
-            const { access_token } = response.data;
-            localStorage.setItem("access_token", access_token);
-
-            this.onRefreshed(access_token);
-
-            if (originalRequest.headers) {
-              originalRequest.headers.Authorization = `Bearer ${access_token}`;
-            }
-
-            return this.axiosInstance(originalRequest);
-          } catch (refreshError) {
-            this.logout();
-            return Promise.reject(refreshError);
-          } finally {
-            this.isRefreshing = false;
-          }
+        // Si ce n'est pas une erreur 401 ou si nous n'avons pas de config, rejeter l'erreur
+        if (error.response?.status !== 401 || !error.config) {
+          return Promise.reject(error);
         }
 
-        return Promise.reject(error);
+        const originalRequest = error.config;
+
+        // Éviter de boucler indéfiniment pour les erreurs 401
+        if ((originalRequest as any)._retry) {
+          // Déconnecter l'utilisateur si nous avons déjà essayé de rafraîchir
+          this.logout();
+          return Promise.reject(error);
+        }
+
+        // Marquer comme déjà essayé
+        (originalRequest as any)._retry = true;
+
+        try {
+          // Simuler un rafraîchissement de token
+          // Dans un environnement réel, vous appelleriez une API de rafraîchissement
+          // Pour l'instant, nous allons simplement rediriger vers la page de connexion
+          this.logout();
+          return Promise.reject(error);
+        } catch (refreshError) {
+          this.logout();
+          return Promise.reject(refreshError);
+        }
       }
     );
   }
@@ -117,6 +85,7 @@ class ApiClient {
   private logout(): void {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user");
     window.location.href = "/login";
   }
 

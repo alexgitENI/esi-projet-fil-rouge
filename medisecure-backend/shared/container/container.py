@@ -30,12 +30,16 @@ class Container(containers.DeclarativeContainer):
     config.database_url.from_env("DATABASE_URL", "postgresql+asyncpg://postgres:postgres@localhost:5432/medisecure")
     config.environment.from_env("ENVIRONMENT", "development")
     
+    # Assurer que nous utilisons bien asyncpg
+    if config.database_url() and "postgresql://" in config.database_url() and "asyncpg" not in config.database_url():
+        config.database_url.override(config.database_url().replace("postgresql://", "postgresql+asyncpg://"))
+    
     # Création du moteur
     engine = providers.Singleton(
-    create_async_engine,
-    config.database_url,
-    echo=True if config.environment == "development" else False
-)
+        create_async_engine,
+        config.database_url,
+        echo=True if config.environment == "development" else False
+    )
     
     # Création de la session SQLAlchemy
     async_session_factory = providers.Factory(
@@ -43,7 +47,8 @@ class Container(containers.DeclarativeContainer):
         autocommit=False,
         autoflush=False,
         bind=engine,
-        class_=AsyncSession
+        class_=AsyncSession,
+        expire_on_commit=False
     )
     
     # Fournisseur de session

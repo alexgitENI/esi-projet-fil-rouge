@@ -48,9 +48,8 @@ class PatientModel(Base):
     
     # Relations
     user = relationship("UserModel", foreign_keys=[user_id])
-    appointments = relationship(
-    "shared.infrastructure.database.models.appointment_model.AppointmentModel", 
-    back_populates="patient"
-)    
+    # Utiliser une chaîne simple pour éviter les imports circulaires
+    appointments = relationship("AppointmentModel", back_populates="patient")
+    
     def __repr__(self):
         return f"<Patient {self.first_name} {self.last_name}>"

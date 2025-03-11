@@ -22,13 +22,15 @@ async def login(
 ):
     try:
         # Récupérer les dépendances
-        user_repository = container.user_repository()
         authenticator = container.authenticator()
+        session = container.db_session()
         
-        # Rechercher l'utilisateur par email
-        user = await user_repository.get_by_email(form_data.username)
+        # Rechercher l'utilisateur directement avec une requête SQL
+        query = select(UserModel).where(UserModel.email == form_data.username)
+        result = await session.execute(query)
+        user_model = result.scalar_one_or_none()
         
-        if not user:
+        if not user_model:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Email ou mot de passe incorrect",
@@ -36,20 +38,15 @@ async def login(
             )
         
         # Vérifier si l'utilisateur est actif
-        if not user.is_active:
+        if not user_model.is_active:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Utilisateur inactif",
                 headers={"WWW-Authenticate": "Bearer"},
             )
         
-        # Récupérer le mot de passe haché de l'utilisateur
-        query = select(UserModel.hashed_password).where(UserModel.id == user.id)
-        result = await user_repository.session.execute(query)
-        hashed_password = result.scalar_one_or_none()
-        
         # Vérifier le mot de passe
-        is_password_valid = authenticator.verify_password(form_data.password, hashed_password)
+        is_password_valid = authenticator.verify_password(form_data.password, user_model.hashed_password)
         
         if not is_password_valid:
             raise HTTPException(
@@ -60,10 +57,10 @@ async def login(
         
         # Créer les données à encoder dans le token
         token_data = {
-            "sub": str(user.id),
-            "email": user.email,
-            "role": user.role.value,
-            "name": f"{user.first_name} {user.last_name}"
+            "sub": str(user_model.id),
+            "email": user_model.email,
+            "role": user_model.role.value,
+            "name": f"{user_model.first_name} {user_model.last_name}"
         }
         
         # Créer le token avec une durée d'expiration
@@ -78,14 +75,14 @@ async def login(
             token_type="bearer",
             expires_in=int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30")) * 60,
             user={
-                "id": str(user.id),
-                "email": user.email,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "role": user.role.value,
-                "is_active": user.is_active,
-                "created_at": user.created_at.isoformat(),
-                "updated_at": user.updated_at.isoformat()
+                "id": str(user_model.id),
+                "email": user_model.email,
+                "first_name": user_model.first_name,
+                "last_name": user_model.last_name,
+                "role": user_model.role.value,
+                "is_active": user_model.is_active,
+                "created_at": user_model.created_at.isoformat(),
+                "updated_at": user_model.updated_at.isoformat()
             }
         )
         

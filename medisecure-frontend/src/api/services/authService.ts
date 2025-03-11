@@ -5,7 +5,6 @@ export interface LoginResponse {
   access_token: string;
   token_type: string;
   expires_in: number;
-  refresh_token?: string;
   user: {
     id: string;
     email: string;
@@ -23,22 +22,6 @@ export interface LoginCredentials {
   password: string;
 }
 
-export interface LoginResponse {
-  access_token: string;
-  token_type: string;
-  expires_in: number;
-  user: {
-    id: string;
-    email: string;
-    first_name: string;
-    last_name: string;
-    role: string;
-    is_active: boolean;
-    created_at: string;
-    updated_at: string;
-  };
-}
-
 export interface ResetPasswordRequest {
   email: string;
 }
@@ -48,42 +31,34 @@ const authService = {
     try {
       console.log("Tentative de connexion avec:", credentials);
 
-      // Utiliser FormData pour la compatibilité avec l'API OAuth2 de FastAPI
-      const formData = new FormData();
+      // Configuration spéciale pour le format attendu par FastAPI OAuth2
+      const formData = new URLSearchParams();
       formData.append("username", credentials.username);
       formData.append("password", credentials.password);
 
-      // Configuration spéciale pour FormData
       const config = {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
       };
 
-      // Convertir FormData en URLSearchParams pour axios
-      const params = new URLSearchParams();
-      params.append("username", credentials.username);
-      params.append("password", credentials.password);
-
-      // Appel API avec URLSearchParams
+      // Appel API direct sans passer par les méthodes du apiClient
       const response = await apiClient.post<LoginResponse>(
         ENDPOINTS.AUTH.LOGIN,
-        params.toString(),
+        formData.toString(),
         config
       );
 
       console.log("Réponse d'authentification:", response);
 
-      // Stocker les tokens
-      localStorage.setItem("access_token", response.access_token);
-
-      // Si le serveur renvoie un refresh_token (à adapter selon votre implémentation)
-      if (response.refresh_token) {
-        localStorage.setItem("refresh_token", response.refresh_token);
+      // Stocker le token
+      if (response.access_token) {
+        localStorage.setItem("access_token", response.access_token);
+        // Stocker les informations de l'utilisateur
+        localStorage.setItem("user", JSON.stringify(response.user));
+      } else {
+        throw new Error("Token non reçu dans la réponse");
       }
-
-      // Stocker les informations de l'utilisateur
-      localStorage.setItem("user", JSON.stringify(response.user));
 
       return response;
     } catch (error) {
