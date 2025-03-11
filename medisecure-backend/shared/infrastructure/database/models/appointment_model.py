@@ -1,3 +1,4 @@
+# shared/infrastructure/database/models/appointment_model.py
 from sqlalchemy import Column, String, DateTime, ForeignKey, Boolean, Text, Enum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
