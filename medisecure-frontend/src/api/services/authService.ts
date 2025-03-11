@@ -27,6 +27,7 @@ export interface ResetPasswordRequest {
 }
 
 const authService = {
+  // Dans src/api/services/authService.ts
   login: async (credentials: LoginCredentials): Promise<LoginResponse> => {
     try {
       console.log("Tentative de connexion avec:", credentials);
@@ -49,18 +50,25 @@ const authService = {
         config
       );
 
-      console.log("Réponse d'authentification:", response);
+      // Adapter les données utilisateur pour correspondre aux attentes du frontend
+      const adaptedResponse = {
+        ...response,
+        user: {
+          ...response.user,
+          username: response.user.email, // Ajouter username basé sur email
+        },
+      };
 
       // Stocker le token
-      if (response.access_token) {
-        localStorage.setItem("access_token", response.access_token);
+      if (adaptedResponse.access_token) {
+        localStorage.setItem("access_token", adaptedResponse.access_token);
         // Stocker les informations de l'utilisateur
-        localStorage.setItem("user", JSON.stringify(response.user));
+        localStorage.setItem("user", JSON.stringify(adaptedResponse.user));
       } else {
         throw new Error("Token non reçu dans la réponse");
       }
 
-      return response;
+      return adaptedResponse;
     } catch (error) {
       console.error("Erreur d'authentification:", error);
       throw error;

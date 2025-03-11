@@ -54,9 +54,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       const response = await authService.login(credentials);
 
+      // Adaptation des données utilisateur pour être compatible avec les composants
+      const adaptedUser = {
+        ...response.user,
+        username: response.user.email, // Ajouter username basé sur email
+      };
+
       // Stocker les informations utilisateur
-      setUser(response.user);
+      setUser(adaptedUser);
       setIsAuthenticated(true);
+
+      // Stocker également dans localStorage si nécessaire
+      localStorage.setItem("user", JSON.stringify(adaptedUser));
     } catch (err) {
       console.error("Login error:", err);
       setError("Identifiants invalides. Veuillez réessayer.");

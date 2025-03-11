@@ -187,13 +187,13 @@ const Sidebar: React.FC<SidebarProps> = ({ mobile = false, onClose }) => {
       <div className="p-4 border-t border-slate-200">
         <div className="flex items-center">
           <div className="h-8 w-8 rounded-full bg-primary-600 flex items-center justify-center text-white">
-            {user?.username.charAt(0).toUpperCase()}
+            {user?.email ? user.email.charAt(0).toUpperCase() : "A"}
           </div>
           <div className="ml-3">
             <p className="text-sm font-medium text-slate-700">
-              {user?.username}
+              {user?.email || "Utilisateur"}
             </p>
-            <p className="text-xs text-slate-500">{user?.role}</p>
+            <p className="text-xs text-slate-500">{user?.role || ""}</p>
           </div>
         </div>
       </div>
