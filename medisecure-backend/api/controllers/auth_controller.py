@@ -122,6 +122,7 @@ async def login(
         )
 
 @router.post("/logout")
+@router.options("/logout")
 async def logout():
     """Route de déconnexion."""
     return {"detail": "Déconnexion réussie"}
