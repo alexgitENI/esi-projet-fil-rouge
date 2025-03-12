@@ -81,6 +81,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       await authService.logout();
       setUser(null);
       setIsAuthenticated(false);
+      window.location.href = "/login";
     } catch (err) {
       console.error("Logout error:", err);
     } finally {
