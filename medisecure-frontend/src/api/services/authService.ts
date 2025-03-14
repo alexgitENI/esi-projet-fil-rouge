@@ -27,7 +27,6 @@ export interface ResetPasswordRequest {
 }
 
 const authService = {
-  // Dans src/api/services/authService.ts
   login: async (credentials: LoginCredentials): Promise<LoginResponse> => {
     try {
       console.log("Tentative de connexion avec:", credentials);
@@ -55,7 +54,7 @@ const authService = {
         ...response,
         user: {
           ...response.user,
-          username: response.user.email, // Ajouter username basé sur email
+          username: response.user.email,
         },
       };
 
