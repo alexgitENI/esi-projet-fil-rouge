@@ -43,15 +43,26 @@ const CreatePatientPage: React.FC = () => {
     },
   });
 
+  // Dans src/pages/patients/CreatePatientPage.tsx
+
   const onSubmit = async (data: FormData) => {
     try {
       setIsSubmitting(true);
 
-      // Simuler l'appel à l'API
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Utiliser l'API réelle au lieu de la simulation
+      const patientData: PatientCreateDto = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        dateOfBirth: data.dateOfBirth,
+        gender: data.gender,
+        email: data.email || undefined,
+        phone: data.phone || undefined,
+        address: data.address || undefined,
+        insuranceNumber: data.insuranceNumber || undefined,
+        medicalHistory: data.medicalHistory || undefined,
+      };
 
-      // En environnement réel, nous utiliserions :
-      // await patientService.createPatient(data);
+      await patientService.createPatient(patientData);
 
       toast.success("Patient créé avec succès !");
       reset();

@@ -102,28 +102,38 @@ const EditPatientPage: React.FC = () => {
     fetchPatient();
   }, [id, reset]);
 
-  const onSubmit = async (data: FormData) => {
-    if (!id) return;
+  // Dans src/pages/patients/EditPatientPage.tsx
 
-    try {
-      setIsSubmitting(true);
-      setError(null);
+const onSubmit = async (data: FormData) => {
+  if (!id) return;
 
-      // En environnement réel, nous utiliserions :
-      // await patientService.updatePatient(id, data);
+  try {
+    setIsSubmitting(true);
+    setError(null);
 
-      // Simuler l'appel API
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    const updateData: PatientUpdateDto = {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      dateOfBirth: data.dateOfBirth,
+      gender: data.gender,
+      email: data.email || undefined,
+      phone: data.phone || undefined,
+      address: data.address || undefined,
+      insuranceNumber: data.insuranceNumber || undefined,
+      medicalHistory: data.medicalHistory || undefined,
+    };
 
-      toast.success("Patient mis à jour avec succès");
-      navigate(`/patients/${id}`);
-    } catch (error) {
-      console.error("Error updating patient:", error);
-      setError("Une erreur est survenue lors de la mise à jour du patient");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    await patientService.updatePatient(id, updateData);
+
+    toast.success("Patient mis à jour avec succès");
+    navigate(`/patients/${id}`);
+  } catch (error) {
+    console.error("Error updating patient:", error);
+    setError("Une erreur est survenue lors de la mise à jour du patient");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   if (loading) {
     return (

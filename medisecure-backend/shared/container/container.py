@@ -12,11 +12,20 @@ from patient_management.infrastructure.adapters.secondary.postgres_patient_repos
 from patient_management.infrastructure.adapters.secondary.in_memory_patient_repository import InMemoryPatientRepository
 from patient_management.domain.services.patient_service import PatientService
 
+from appointment_management.infrastructure.adapters.secondary.postgres_appointment_repository import PostgresAppointmentRepository
+from appointment_management.infrastructure.adapters.secondary.in_memory_appointment_repository import InMemoryAppointmentRepository
+from appointment_management.domain.services.appointment_service import AppointmentService
+
 import os
+import logging
 from dotenv import load_dotenv
 
 # Charger les variables d'environnement
 load_dotenv()
+
+# Configuration du logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class Container(containers.DeclarativeContainer):
     """
@@ -34,11 +43,11 @@ class Container(containers.DeclarativeContainer):
     if config.database_url() and "postgresql://" in config.database_url() and "asyncpg" not in config.database_url():
         config.database_url.override(config.database_url().replace("postgresql://", "postgresql+asyncpg://"))
     
-    # Création du moteur
+    # Création du moteur - Activer echo=True pour le développement pour voir les requêtes SQL
     engine = providers.Singleton(
         create_async_engine,
         config.database_url,
-        echo=True if config.environment == "development" else False
+        echo=True if config.environment() == "development" else False
     )
     
     # Création de la session SQLAlchemy
@@ -61,25 +70,64 @@ class Container(containers.DeclarativeContainer):
     id_generator = providers.Factory(UuidGenerator)
     authenticator = providers.Factory(BasicAuthenticator)
     
+    # Services du domaine
+    patient_service = providers.Factory(PatientService)
+    appointment_service = providers.Factory(AppointmentService)
+    
     # Adaptateurs secondaires - Shared
     user_repository = providers.Factory(
         PostgresUserRepository,
         session=db_session
     )
     
-    # Utiliser le repository en mémoire pour les tests
+    # Version in-memory pour les tests
     user_repository_in_memory = providers.Factory(InMemoryUserRepository)
     
-    # Services d'infrastructure
-    mailer = providers.Factory(SmtpMailer)
-    
-    # Patient Management - Services et repositories
-    patient_service = providers.Factory(PatientService)
-    
+    # Patient Management - Repositories
     patient_repository = providers.Factory(
         PostgresPatientRepository,
         session=db_session
     )
     
-    # Utiliser le repository en mémoire pour les tests
+    # Version in-memory pour les tests
     patient_repository_in_memory = providers.Factory(InMemoryPatientRepository)
+    
+    # Appointment Management - Repositories
+    appointment_repository = providers.Factory(
+        PostgresAppointmentRepository,
+        session=db_session
+    )
+    
+    # Version in-memory pour les tests
+    appointment_repository_in_memory = providers.Factory(InMemoryAppointmentRepository)
+    
+    # Services d'infrastructure
+    mailer = providers.Factory(SmtpMailer)
+    
+    # Log des dépendances chargées au démarrage
+    def __init__(self):
+        super().__init__()
+        env = self.config.environment()
+        db_url = self.config.database_url()
+        # Masquer le mot de passe dans les logs
+        if db_url and "@" in db_url:
+            parts = db_url.split("@")
+            masked_url = parts[0].split(":")
+            masked_url = f"{masked_url[0]}:***@{parts[1]}"
+            logger.info(f"Environnement: {env}, Base de données: {masked_url}")
+        else:
+            logger.info(f"Environnement: {env}, URL de base de données configurée")
+    
+    # Configuration conditionnelle selon l'environnement
+    def configure_for_environment(self):
+        """Configure les dépendances en fonction de l'environnement"""
+        env = self.config.environment()
+        
+        if env == "test":
+            # Remplacer les repositories PostgreSQL par des repositories in-memory pour les tests
+            logger.info("Environnement de test détecté: utilisation des repositories in-memory")
+            self.user_repository.override(self.user_repository_in_memory)
+            self.patient_repository.override(self.patient_repository_in_memory)
+            self.appointment_repository.override(self.appointment_repository_in_memory)
+        else:
+            logger.info(f"Environnement {env}: utilisation des repositories PostgreSQL")

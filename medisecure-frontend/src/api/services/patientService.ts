@@ -1,3 +1,5 @@
+// Dans src/api/services/patientService.ts
+
 import apiClient from "../apiClient";
 import { ENDPOINTS } from "../endpoints";
 import {
@@ -8,7 +10,8 @@ import {
 
 const patientService = {
   getAllPatients: async (): Promise<Patient[]> => {
-    return apiClient.get<Patient[]>(ENDPOINTS.PATIENTS.BASE);
+    const response = await apiClient.get<{ patients: Patient[], total: number, skip: number, limit: number }>(ENDPOINTS.PATIENTS.BASE);
+    return response.patients; // Ajuster pour la structure de réponse de l'API
   },
 
   getPatientById: async (id: string): Promise<Patient> => {
@@ -31,8 +34,10 @@ const patientService = {
   },
 
   searchPatients: async (query: string): Promise<Patient[]> => {
-    return apiClient.get<Patient[]>(
-      `${ENDPOINTS.PATIENTS.SEARCH}?q=${encodeURIComponent(query)}`
+    // Adapter pour utiliser les bons critères de recherche
+    return apiClient.post<Patient[]>(
+      ENDPOINTS.PATIENTS.SEARCH,
+      { name: query, skip: 0, limit: 100 }
     );
   },
 };
