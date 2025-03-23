@@ -5,14 +5,7 @@ from datetime import datetime
 import enum
 
 from shared.infrastructure.database.connection import Base
-
-class UserRole(str, enum.Enum):
-    """Énumération des rôles utilisateur"""
-    ADMIN = "admin"
-    DOCTOR = "doctor"
-    NURSE = "nurse"
-    PATIENT = "patient"
-    RECEPTIONIST = "receptionist"
+from shared.domain.enums.roles import UserRole
 
 class UserModel(Base):
     """Modèle SQLAlchemy pour la table des utilisateurs"""

@@ -2,7 +2,7 @@
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'userrole') THEN
-        CREATE TYPE userrole AS ENUM ('admin', 'doctor', 'nurse', 'patient', 'receptionist');
+        CREATE TYPE userrole AS ENUM ('ADMIN', 'DOCTOR', 'NURSE', 'PATIENT', 'RECEPTIONIST');
     END IF;
     
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'appointmentstatus') THEN
@@ -74,7 +74,7 @@ VALUES (
   '$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', -- Mot de passe: Admin123!
   'Admin',
   'User',
-  'admin',
+  'ADMIN',
   TRUE,
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP
