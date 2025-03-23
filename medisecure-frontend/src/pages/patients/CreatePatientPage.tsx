@@ -181,7 +181,6 @@ const CreatePatientPage: React.FC = () => {
                 >
                   <option value="male">Homme</option>
                   <option value="female">Femme</option>
-                  <option value="other">Autre</option>
                 </select>
                 {errors.gender && (
                   <p className="mt-1 text-sm text-error-500">
