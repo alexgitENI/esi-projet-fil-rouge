@@ -13,7 +13,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    restart: always
+    restart: "no"
     command: ./start.sh
 
   db:
