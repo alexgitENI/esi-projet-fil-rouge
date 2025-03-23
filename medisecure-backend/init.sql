@@ -1,6 +1,15 @@
--- Création des types énumérés
-CREATE TYPE IF NOT EXISTS userrole AS ENUM ('admin', 'doctor', 'nurse', 'patient', 'receptionist');
-CREATE TYPE IF NOT EXISTS appointmentstatus AS ENUM ('scheduled', 'confirmed', 'cancelled', 'completed', 'missed');
+-- Vérification de l'existence des types enum
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'userrole') THEN
+        CREATE TYPE userrole AS ENUM ('admin', 'doctor', 'nurse', 'patient', 'receptionist');
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'appointmentstatus') THEN
+        CREATE TYPE appointmentstatus AS ENUM ('scheduled', 'confirmed', 'cancelled', 'completed', 'missed');
+    END IF;
+END
+$$;
 
 -- Création des tables
 CREATE TABLE IF NOT EXISTS users (
