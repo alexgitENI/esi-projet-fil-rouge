@@ -2,7 +2,7 @@ from enum import Enum, auto
 
 class UserRole(str, Enum):
     """Enumération des rôles d'utilisateurs dans le système"""
-    ADMIN = "admin"
+    ADMIN = "admin" 
     DOCTOR = "doctor"
     NURSE = "nurse"
     PATIENT = "patient"

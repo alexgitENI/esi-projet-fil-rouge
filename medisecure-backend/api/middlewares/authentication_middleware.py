@@ -39,6 +39,12 @@ class AuthenticationMiddleware:
                     headers={"WWW-Authenticate": "Bearer"},
                 )
             
+            # Normalisation du rôle dans le payload si nécessaire
+            # Remarque: C'est ici que nous pouvons normaliser le rôle pour le reste de l'application
+            if "role" in payload and isinstance(payload["role"], str):
+                # Conserver la casse originale pour la compatibilité
+                pass
+            
             # Ajout de l'utilisateur à la requête
             request.state.user = payload
             

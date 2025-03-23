@@ -57,7 +57,7 @@ async def login(
         print(f"Mot de passe fourni: {form_data.password}")
         print(f"Hash stocké: {user_model.hashed_password}")
         
-        # MODIFICATION : Exception pour l'utilisateur admin
+        # Exception pour l'utilisateur admin
         is_password_valid = False
         if user_model.email == "admin@medisecure.com" and form_data.password == "Admin123!":
             is_password_valid = True
@@ -75,14 +75,17 @@ async def login(
         
         print(f"Mot de passe valide pour: {user_model.email}")
         
-        # Créer les données à encoder dans le token
-        # MODIFICATION : Assurez-vous que la valeur du rôle est une chaîne en majuscules
-        role_value = user_model.role.value.upper() if hasattr(user_model.role, 'value') else user_model.role.upper()
+        # Récupérer le rôle sous forme de chaîne, peu importe comment il est stocké
+        if hasattr(user_model.role, 'value'):
+            role_str = user_model.role.value
+        else:
+            role_str = str(user_model.role)
         
+        # Ne pas convertir en majuscules ici, conserver la casse telle quelle
         token_data = {
             "sub": str(user_model.id),
             "email": user_model.email,
-            "role": role_value,
+            "role": role_str,
             "name": f"{user_model.first_name} {user_model.last_name}"
         }
         
@@ -106,7 +109,7 @@ async def login(
                 "email": user_model.email,
                 "first_name": user_model.first_name,
                 "last_name": user_model.last_name,
-                "role": role_value,  # Utilisation du rôle en majuscules
+                "role": role_str,  # Utiliser la chaîne de rôle telle quelle
                 "is_active": user_model.is_active,
                 "created_at": user_model.created_at.isoformat(),
                 "updated_at": user_model.updated_at.isoformat()

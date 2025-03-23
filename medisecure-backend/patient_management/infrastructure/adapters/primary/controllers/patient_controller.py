@@ -26,6 +26,27 @@ from patient_management.domain.exceptions.patient_exceptions import (
 # Créer un router pour les endpoints des patients
 router = APIRouter(prefix="/api/patients", tags=["patients"])
 
+def check_role_permission(role: str, allowed_roles: list) -> bool:
+    """
+    Vérifie si un rôle est autorisé, indépendamment de la casse.
+    
+    Args:
+        role: Le rôle à vérifier
+        allowed_roles: Liste des rôles autorisés
+        
+    Returns:
+        bool: True si le rôle est autorisé, False sinon
+    """
+    if not role:
+        return False
+    
+    # Normaliser le rôle et les rôles autorisés pour la comparaison
+    role_lower = role.lower()
+    allowed_roles_lower = [r.lower() for r in allowed_roles]
+    
+    return role_lower in allowed_roles_lower
+
+
 def get_container():
     """
     Fournit le container d'injection de dépendances.

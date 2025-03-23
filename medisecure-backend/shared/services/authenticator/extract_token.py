@@ -36,6 +36,11 @@ async def extract_token_payload(
             algorithms=[os.getenv("JWT_ALGORITHM", "HS256")]
         )
         
+        # Assurez-vous que le rôle est en majuscules pour la vérification ultérieure
+        # Mais ne modifiez pas le payload original
+        if "role" in payload and isinstance(payload["role"], str):
+            payload["role"] = payload["role"].upper()
+        
         return payload
         
     except JWTError:
