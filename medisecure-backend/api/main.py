@@ -34,8 +34,12 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 # Initialiser le container
+# Initialiser le container
 container = Container()
-container.configure_for_environment()
+try:
+    container.configure_for_environment()
+except AttributeError:
+    logging.warning("La méthode configure_for_environment n'est pas disponible sur le container")
 
 # Informations de version pour l'API
 API_VERSION = "1.0.0"
