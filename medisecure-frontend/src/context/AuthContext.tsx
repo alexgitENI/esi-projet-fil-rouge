@@ -13,7 +13,16 @@ import authService, {
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  user: LoginResponse["user"] | null;
+  user: {
+    id: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    role: string;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+  } | null;
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;

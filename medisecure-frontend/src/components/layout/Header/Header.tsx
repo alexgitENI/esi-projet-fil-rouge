@@ -1,4 +1,5 @@
-// src/components/layout/Header/Header.tsx
+// medisecure-frontend/src/components/layout/Header/Header.tsx
+
 import React from "react";
 import { useAuth } from "../../../context/AuthContext";
 import { Link } from "react-router-dom";
@@ -89,10 +90,10 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
                 <span className="sr-only">Menu utilisateur</span>
                 <div className="flex items-center space-x-2">
                   <div className="h-8 w-8 rounded-full bg-primary-600 flex items-center justify-center text-white">
-                    {user?.username.charAt(0).toUpperCase()}
+                    {user?.email ? user.email.charAt(0).toUpperCase() : "A"}
                   </div>
                   <span className="hidden md:inline-block font-medium text-slate-700">
-                    {user?.username}
+                    {user?.email || "Utilisateur"}
                   </span>
                   <svg
                     className="h-5 w-5 text-slate-400"

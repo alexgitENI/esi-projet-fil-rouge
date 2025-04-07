@@ -1,58 +1,44 @@
 // src/pages/patients/PatientDetailsPage.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Patient } from "../../types/patient.types";
 import patientService from "../../api/services/patientService";
 import toast from "react-hot-toast";
+import Button from "../../components/common/Button/Button";
+import Alert from "../../components/common/Alert/Alert";
+import LoadingScreen from "../../components/common/LoadingScreen/LoadingScreen";
 
 const PatientDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [patient, setPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Utiliser useCallback pour éviter les récursions infinies dans useEffect
+  const fetchPatient = useCallback(async () => {
+    if (!id) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Appel réel à l'API
+      const fetchedPatient = await patientService.getPatientById(id);
+      console.log("Patient récupéré:", fetchedPatient);
+      setPatient(fetchedPatient);
+    } catch (error) {
+      console.error("Error fetching patient:", error);
+      setError("Erreur lors du chargement des détails du patient");
+      toast.error("Impossible de charger les détails du patient");
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
 
   useEffect(() => {
-    const fetchPatient = async () => {
-      if (!id) return;
-
-      try {
-        setLoading(true);
-
-        // Simuler l'appel à l'API
-        await new Promise((resolve) => setTimeout(resolve, 800));
-
-        // En environnement réel, nous utiliserions :
-        // const data = await patientService.getPatientById(id);
-
-        // Simulation de données
-        const mockPatient: Patient = {
-          id,
-          firstName: "Sophie",
-          lastName: "Martin",
-          dateOfBirth: "1985-06-15",
-          gender: "female",
-          email: "sophie.martin@example.com",
-          phone: "06 12 34 56 78",
-          address: "25 rue des Lilas, 75020 Paris",
-          insuranceNumber: "1 85 06 75 042 042 12",
-          medicalHistory:
-            "Allergie aux arachides.\nAsthme léger.\nAntécédents familiaux de diabète de type 2.",
-          createdAt: "2023-02-15T10:30:00Z",
-          updatedAt: "2023-02-15T10:30:00Z",
-        };
-
-        setPatient(mockPatient);
-      } catch (error) {
-        console.error("Error fetching patient:", error);
-        toast.error("Erreur lors du chargement des détails du patient");
-        navigate("/patients");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchPatient();
-  }, [id, navigate]);
+  }, [fetchPatient, id]);
 
   // Calculer l'âge
   const calculateAge = (dateOfBirth: string): number => {
@@ -81,28 +67,18 @@ const PatientDetailsPage: React.FC = () => {
   };
 
   if (loading) {
+    return <LoadingScreen />;
+  }
+
+  if (error) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <svg
-          className="animate-spin h-8 w-8 text-primary-600"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          ></circle>
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          ></path>
-        </svg>
+      <div className="p-4">
+        <Alert variant="error" message={error} onClose={() => setError(null)} />
+        <div className="mt-4 flex justify-center">
+          <Button variant="primary" onClick={() => navigate("/patients")}>
+            Retour à la liste des patients
+          </Button>
+        </div>
       </div>
     );
   }
@@ -224,9 +200,7 @@ const PatientDetailsPage: React.FC = () => {
               </p>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-slate-500">
-                Téléphone
-              </h3>
+              <h3 className="text-sm font-medium text-slate-500">Téléphone</h3>
               <p className="mt-1 text-slate-900">
                 {patient.phone || "Non renseigné"}
               </p>
@@ -252,9 +226,7 @@ const PatientDetailsPage: React.FC = () => {
               ))}
             </div>
           ) : (
-            <p className="text-slate-500">
-              Aucun antécédent médical renseigné
-            </p>
+            <p className="text-slate-500">Aucun antécédent médical renseigné</p>
           )}
         </div>
       </div>
@@ -337,6 +309,13 @@ const PatientDetailsPage: React.FC = () => {
             </Link>
           </div>
         </div>
+      </div>
+
+      {/* Bouton de rafraîchissement */}
+      <div className="flex justify-center">
+        <Button variant="outline" onClick={fetchPatient} isLoading={loading}>
+          Rafraîchir les données
+        </Button>
       </div>
     </div>
   );

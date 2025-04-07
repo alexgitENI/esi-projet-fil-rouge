@@ -1,106 +1,45 @@
 // src/pages/patients/PatientsListPage.tsx
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState, useCallback } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Patient } from "../../types/patient.types";
 import patientService from "../../api/services/patientService";
 import toast from "react-hot-toast";
+import Button from "../../components/common/Button/Button";
+import Alert from "../../components/common/Alert/Alert";
+import LoadingScreen from "../../components/common/LoadingScreen/LoadingScreen";
 
 const PatientsListPage: React.FC = () => {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredPatients, setFilteredPatients] = useState<Patient[]>([]);
+  const location = useLocation();
 
-  useEffect(() => {
-    const fetchPatients = async () => {
-      try {
-        setLoading(true);
-        // En environnement réel, nous utiliserions :
-        // const data = await patientService.getAllPatients();
+  // Utiliser useCallback pour éviter les récursions infinies dans useEffect
+  const fetchPatients = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        // Pour l'instant, nous simulons des données
-        await new Promise((resolve) => setTimeout(resolve, 800));
-
-        const mockPatients: Patient[] = [
-          {
-            id: "1",
-            firstName: "Sophie",
-            lastName: "Martin",
-            dateOfBirth: "1985-06-15",
-            gender: "female",
-            email: "sophie.martin@example.com",
-            phone: "06 12 34 56 78",
-            address: "25 rue des Lilas, 75020 Paris",
-            insuranceNumber: "1 85 06 75 042 042 12",
-            createdAt: "2023-02-15T10:30:00Z",
-            updatedAt: "2023-02-15T10:30:00Z",
-          },
-          {
-            id: "2",
-            firstName: "Thomas",
-            lastName: "Dubois",
-            dateOfBirth: "1992-03-22",
-            gender: "male",
-            email: "thomas.dubois@example.com",
-            phone: "06 23 45 67 89",
-            address: "8 avenue Victor Hugo, 69002 Lyon",
-            insuranceNumber: "1 92 03 69 123 456 78",
-            createdAt: "2023-02-14T14:15:00Z",
-            updatedAt: "2023-02-14T14:15:00Z",
-          },
-          {
-            id: "3",
-            firstName: "Emma",
-            lastName: "Petit",
-            dateOfBirth: "1978-11-05",
-            gender: "female",
-            email: "emma.petit@example.com",
-            phone: "06 34 56 78 90",
-            address: "12 boulevard de la Liberté, 59800 Lille",
-            insuranceNumber: "2 78 11 59 789 012 34",
-            createdAt: "2023-02-13T09:45:00Z",
-            updatedAt: "2023-02-13T09:45:00Z",
-          },
-          {
-            id: "4",
-            firstName: "Lucas",
-            lastName: "Bernard",
-            dateOfBirth: "1995-08-17",
-            gender: "male",
-            email: "lucas.bernard@example.com",
-            phone: "06 45 67 89 01",
-            address: "5 rue de la Paix, 44000 Nantes",
-            insuranceNumber: "1 95 08 44 345 678 90",
-            createdAt: "2023-02-12T16:20:00Z",
-            updatedAt: "2023-02-12T16:20:00Z",
-          },
-          {
-            id: "5",
-            firstName: "Camille",
-            lastName: "Leroy",
-            dateOfBirth: "1988-02-29",
-            gender: "female",
-            email: "camille.leroy@example.com",
-            phone: "06 56 78 90 12",
-            address: "18 rue des Carmes, 31000 Toulouse",
-            insuranceNumber: "2 88 02 31 567 890 12",
-            createdAt: "2023-02-11T11:10:00Z",
-            updatedAt: "2023-02-11T11:10:00Z",
-          },
-        ];
-
-        setPatients(mockPatients);
-        setFilteredPatients(mockPatients);
-      } catch (error) {
-        console.error("Error fetching patients:", error);
-        toast.error("Erreur lors du chargement des patients");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPatients();
+      // Appel réel à l'API
+      const fetchedPatients = await patientService.getAllPatients();
+      console.log("Patients récupérés:", fetchedPatients);
+      setPatients(fetchedPatients);
+      // Réinitialiser les patients filtrés quand on recharge la liste complète
+      setFilteredPatients(fetchedPatients);
+    } catch (error) {
+      console.error("Erreur lors du chargement des patients:", error);
+      setError("Impossible de charger la liste des patients");
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  // Recharger les données quand la page change ou quand l'URL change
+  useEffect(() => {
+    fetchPatients();
+  }, [fetchPatients, location.key]); // location.key change quand on navigue
 
   // Filtrer les patients en fonction de la recherche
   useEffect(() => {
@@ -145,48 +84,23 @@ const PatientsListPage: React.FC = () => {
     }
 
     try {
-      // En environnement réel, nous utiliserions :
-      // await patientService.deletePatient(id);
-
-      // Pour l'instant, nous simulons la suppression
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      setPatients(patients.filter((patient) => patient.id !== id));
-      setFilteredPatients(
-        filteredPatients.filter((patient) => patient.id !== id)
+      await patientService.deletePatient(id);
+      // Mettre à jour l'état local immédiatement après succès
+      setPatients((prevPatients) =>
+        prevPatients.filter((patient) => patient.id !== id)
+      );
+      setFilteredPatients((prevPatients) =>
+        prevPatients.filter((patient) => patient.id !== id)
       );
       toast.success("Patient supprimé avec succès");
     } catch (error) {
-      console.error("Error deleting patient:", error);
+      console.error("Erreur lors de la suppression du patient:", error);
       toast.error("Erreur lors de la suppression du patient");
     }
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <svg
-          className="animate-spin h-8 w-8 text-primary-600"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          ></circle>
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          ></path>
-        </svg>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (
@@ -215,6 +129,10 @@ const PatientsListPage: React.FC = () => {
           Nouveau patient
         </Link>
       </div>
+
+      {error && (
+        <Alert variant="error" message={error} onClose={() => setError(null)} />
+      )}
 
       {/* Barre de recherche */}
       <div className="relative">
@@ -308,15 +226,15 @@ const PatientsListPage: React.FC = () => {
                     </td>
                     <td className="px-3 py-4 whitespace-nowrap">
                       <div className="text-sm text-slate-900">
-                        {patient.email}
+                        {patient.email || "Non renseigné"}
                       </div>
                       <div className="text-xs text-slate-500">
-                        {patient.phone}
+                        {patient.phone || "Non renseigné"}
                       </div>
                     </td>
                     <td className="px-3 py-4 whitespace-nowrap">
                       <div className="text-sm text-slate-900">
-                        {patient.insuranceNumber}
+                        {patient.insuranceNumber || "Non renseigné"}
                       </div>
                     </td>
                     <td className="px-3 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -345,6 +263,13 @@ const PatientsListPage: React.FC = () => {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Bouton pour rafraîchir les données */}
+      <div className="flex justify-center">
+        <Button variant="outline" onClick={fetchPatients} isLoading={loading}>
+          Rafraîchir la liste
+        </Button>
       </div>
     </div>
   );
