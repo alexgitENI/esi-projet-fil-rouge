@@ -1,15 +1,20 @@
+# Fichier docker-compose.yml
 services:
   api:
     build:
-      context: .
+      context: ./medisecure-backend
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
     volumes:
-      - .:/app
+      - ./medisecure-backend:/app
     environment:
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/medisecure
       - ENVIRONMENT=development
+      - JWT_SECRET_KEY=your_secret_key_for_development
+      - JWT_ALGORITHM=HS256
+      - JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost
     depends_on:
       db:
         condition: service_healthy
@@ -31,6 +36,20 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  frontend:
+    build:
+      context: ./medisecure-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./medisecure-frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000/api
+    depends_on:
+      - api
 
 volumes:
   postgres_data:

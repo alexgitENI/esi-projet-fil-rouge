@@ -1,3 +1,4 @@
+// src/api/services/authService.ts
 import apiClient from "../apiClient";
 import { ENDPOINTS } from "../endpoints";
 
@@ -31,43 +32,37 @@ const authService = {
     try {
       console.log("Tentative de connexion avec:", credentials);
 
-      // Configuration spéciale pour le format attendu par FastAPI OAuth2
+      // Transformer les données pour correspondre à ce qu'attend FastAPI OAuth2
       const formData = new URLSearchParams();
       formData.append("username", credentials.username);
       formData.append("password", credentials.password);
 
+      // Configuration spéciale pour le format attendu par FastAPI OAuth2
       const config = {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
       };
 
-      // Appel API direct sans passer par les méthodes du apiClient
+      // Appel API avec les bons en-têtes
       const response = await apiClient.post<LoginResponse>(
         ENDPOINTS.AUTH.LOGIN,
         formData.toString(),
         config
       );
 
-      // Adapter les données utilisateur pour correspondre aux attentes du frontend
-      const adaptedResponse = {
-        ...response,
-        user: {
-          ...response.user,
-          username: response.user.email,
-        },
-      };
+      console.log("Réponse d'authentification reçue:", response);
 
       // Stocker le token
-      if (adaptedResponse.access_token) {
-        localStorage.setItem("access_token", adaptedResponse.access_token);
+      if (response.access_token) {
+        localStorage.setItem("access_token", response.access_token);
         // Stocker les informations de l'utilisateur
-        localStorage.setItem("user", JSON.stringify(adaptedResponse.user));
+        localStorage.setItem("user", JSON.stringify(response.user));
       } else {
         throw new Error("Token non reçu dans la réponse");
       }
 
-      return adaptedResponse;
+      return response;
     } catch (error) {
       console.error("Erreur d'authentification:", error);
       throw error;

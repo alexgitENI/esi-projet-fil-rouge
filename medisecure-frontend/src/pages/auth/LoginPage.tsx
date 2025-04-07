@@ -80,12 +80,12 @@ const LoginPage: React.FC = () => {
           <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             <div>
               <label htmlFor="username" className="label">
-                Nom d'utilisateur
+                Email
               </label>
               <input
                 id="username"
                 type="text"
-                autoComplete="username"
+                autoComplete="email"
                 className={`input ${
                   errors.username
                     ? "border-error-500 focus:border-error-500 focus:ring-error-500"

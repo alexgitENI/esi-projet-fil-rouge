@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.future import select
 from datetime import timedelta
@@ -18,11 +18,29 @@ def get_container():
 
 @router.post("/login", response_model=TokenResponseDTO)
 async def login(
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
     container: Container = Depends(get_container)
 ):
+    """
+    Endpoint de connexion utilisant OAuth2 avec mot de passe.
+    
+    Args:
+        request: La requête HTTP
+        form_data: Les données du formulaire de connexion
+        container: Le container d'injection de dépendances
+        
+    Returns:
+        TokenResponseDTO: Le token d'accès et les informations de l'utilisateur
+        
+    Raises:
+        HTTPException: En cas d'erreur
+    """
     try:
         print(f"Tentative de connexion avec: {form_data.username}")
+        
+        # Vérifier si le client accepte le JSON (important pour les tests)
+        accepted_content_type = request.headers.get('accept', '')
         
         # Récupérer les dépendances
         authenticator = container.authenticator()
@@ -75,13 +93,13 @@ async def login(
         
         print(f"Mot de passe valide pour: {user_model.email}")
         
-        # Récupérer le rôle sous forme de chaîne, peu importe comment il est stocké
+        # Récupérer le rôle sous forme de chaîne
         if hasattr(user_model.role, 'value'):
             role_str = user_model.role.value
         else:
             role_str = str(user_model.role)
         
-        # Ne pas convertir en majuscules ici, conserver la casse telle quelle
+        # Données du token
         token_data = {
             "sub": str(user_model.id),
             "email": user_model.email,
@@ -109,10 +127,10 @@ async def login(
                 "email": user_model.email,
                 "first_name": user_model.first_name,
                 "last_name": user_model.last_name,
-                "role": role_str,  # Utiliser la chaîne de rôle telle quelle
+                "role": role_str,
                 "is_active": user_model.is_active,
-                "created_at": user_model.created_at.isoformat(),
-                "updated_at": user_model.updated_at.isoformat()
+                "created_at": user_model.created_at.isoformat() if user_model.created_at else None,
+                "updated_at": user_model.updated_at.isoformat() if user_model.updated_at else None
             }
         )
         

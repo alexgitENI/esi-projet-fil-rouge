@@ -1,5 +1,15 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
-import authService, { LoginCredentials, LoginResponse } from "../api/services/authService";
+// src/context/AuthContext.tsx
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import authService, {
+  LoginCredentials,
+  LoginResponse,
+} from "../api/services/authService";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -32,7 +42,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         // Récupérer l'utilisateur à partir du localStorage
         const userString = localStorage.getItem("user");
         if (userString) {
-          setUser(JSON.parse(userString));
+          const parsedUser = JSON.parse(userString);
+          setUser(parsedUser);
         }
         setIsAuthenticated(authService.isAuthenticated());
       } catch (err) {
@@ -54,18 +65,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       const response = await authService.login(credentials);
 
-      // Adaptation des données utilisateur pour être compatible avec les composants
-      const adaptedUser = {
-        ...response.user,
-        username: response.user.email, // Ajouter username basé sur email
-      };
-
-      // Stocker les informations utilisateur
-      setUser(adaptedUser);
+      // Adapter l'utilisateur pour l'interface utilisateur
+      setUser(response.user);
       setIsAuthenticated(true);
-
-      // Stocker également dans localStorage si nécessaire
-      localStorage.setItem("user", JSON.stringify(adaptedUser));
     } catch (err) {
       console.error("Login error:", err);
       setError("Identifiants invalides. Veuillez réessayer.");
