@@ -33,37 +33,61 @@ class ApiClient {
         if (token && config.headers) {
           config.headers.Authorization = `Bearer ${token}`;
         }
+        console.log(
+          `Requête ${config.method?.toUpperCase()} vers ${config.url}`,
+          config.data
+        );
         return config;
       },
-      (error) => Promise.reject(error)
+      (error) => {
+        console.error("Erreur lors de la préparation de la requête:", error);
+        return Promise.reject(error);
+      }
     );
 
     // Interceptor de réponse - gère les erreurs d'authentification
     this.axiosInstance.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        console.log(`Réponse de ${response.config.url}:`, response.data);
+        return response; // Retourne la réponse complète et non juste les données
+      },
       async (error: AxiosError) => {
-        // Si ce n'est pas une erreur 401 ou si nous n'avons pas de config, rejeter l'erreur
-        if (error.response?.status !== 401 || !error.config) {
-          return Promise.reject(error);
+        if (error.response) {
+          console.error(
+            `Erreur ${error.response.status} pour ${error.config?.url}:`,
+            error.response.data
+          );
+
+          // Si l'erreur est 401 (non autorisé), déconnexion
+          if (
+            error.response.status === 401 &&
+            !error.config?.url?.includes("login")
+          ) {
+            console.warn("Token expiré ou invalide, déconnexion...");
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("user");
+
+            // Vérifier si nous sommes déjà sur la page de login pour éviter une boucle de redirections
+            if (!window.location.pathname.includes("login")) {
+              window.location.href = "/login";
+            }
+          }
+        } else {
+          console.error("Erreur réseau:", error.message);
         }
-
-        // Rediriger vers la page de connexion en cas d'erreur d'authentification
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("user");
-
-        // Vérifier si nous sommes déjà sur la page de login pour éviter une boucle de redirections
-        if (!window.location.pathname.includes("login")) {
-          window.location.href = "/login";
-        }
-
         return Promise.reject(error);
       }
     );
   }
 
   public async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.axiosInstance.get<T>(url, config);
-    return response.data;
+    try {
+      const response = await this.axiosInstance.get<T>(url, config);
+      return response.data;
+    } catch (error) {
+      console.error(`Erreur GET ${url}:`, error);
+      throw error;
+    }
   }
 
   public async post<T>(
@@ -71,8 +95,13 @@ class ApiClient {
     data?: any,
     config?: AxiosRequestConfig
   ): Promise<T> {
-    const response = await this.axiosInstance.post<T>(url, data, config);
-    return response.data;
+    try {
+      const response = await this.axiosInstance.post<T>(url, data, config);
+      return response.data;
+    } catch (error) {
+      console.error(`Erreur POST ${url}:`, error);
+      throw error;
+    }
   }
 
   public async put<T>(
@@ -80,8 +109,13 @@ class ApiClient {
     data?: any,
     config?: AxiosRequestConfig
   ): Promise<T> {
-    const response = await this.axiosInstance.put<T>(url, data, config);
-    return response.data;
+    try {
+      const response = await this.axiosInstance.put<T>(url, data, config);
+      return response.data;
+    } catch (error) {
+      console.error(`Erreur PUT ${url}:`, error);
+      throw error;
+    }
   }
 
   public async patch<T>(
@@ -89,13 +123,23 @@ class ApiClient {
     data?: any,
     config?: AxiosRequestConfig
   ): Promise<T> {
-    const response = await this.axiosInstance.patch<T>(url, data, config);
-    return response.data;
+    try {
+      const response = await this.axiosInstance.patch<T>(url, data, config);
+      return response.data;
+    } catch (error) {
+      console.error(`Erreur PATCH ${url}:`, error);
+      throw error;
+    }
   }
 
   public async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.axiosInstance.delete<T>(url, config);
-    return response.data;
+    try {
+      const response = await this.axiosInstance.delete<T>(url, config);
+      return response.data;
+    } catch (error) {
+      console.error(`Erreur DELETE ${url}:`, error);
+      throw error;
+    }
   }
 }
 

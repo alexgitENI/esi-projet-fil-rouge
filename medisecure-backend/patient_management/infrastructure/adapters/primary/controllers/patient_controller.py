@@ -1,7 +1,9 @@
+# medisecure-backend/patient_management/infrastructure/adapters/primary/controllers/patient_controller.py
 from typing import Optional, List, Dict, Any
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, Path, status
 from datetime import date
+import logging
 
 from shared.services.authenticator.extract_token import extract_token_payload
 from shared.container.container import Container
@@ -22,6 +24,9 @@ from patient_management.domain.exceptions.patient_exceptions import (
     MissingRequiredFieldException,
     MissingGuardianConsentException
 )
+
+# Configuration du logging
+logger = logging.getLogger(__name__)
 
 # Créer un router pour les endpoints des patients
 router = APIRouter(prefix="/api/patients", tags=["patients"])
@@ -82,6 +87,9 @@ async def create_patient(
                 detail="You don't have permission to create patient folders"
             )
         
+        # Log des données reçues
+        logger.info(f"Création d'un nouveau patient avec les données: {data}")
+        
         # Créer le cas d'utilisation avec les dépendances nécessaires
         use_case = CreatePatientFolderUseCase(
             patient_repository=container.patient_repository(),
@@ -92,33 +100,39 @@ async def create_patient(
         # Exécuter le cas d'utilisation
         result = await use_case.execute(data)
         
+        logger.info(f"Patient créé avec succès: {result.id}")
         return result
     
     except PatientAlreadyExistsException as e:
+        logger.error(f"Patient déjà existant: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=str(e)
         )
     
     except MissingRequiredFieldException as e:
+        logger.error(f"Champ requis manquant: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
     
     except MissingGuardianConsentException as e:
+        logger.error(f"Consentement du tuteur manquant: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
     
     except ValueError as e:
+        logger.error(f"Erreur de validation: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
     
     except Exception as e:
+        logger.exception(f"Erreur inattendue lors de la création du patient: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An unexpected error occurred: {str(e)}"
@@ -160,18 +174,21 @@ async def get_patient(
         return result
     
     except PatientNotFoundException as e:
+        logger.error(f"Patient non trouvé: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e)
         )
     
     except MissingPatientConsentException as e:
+        logger.error(f"Consentement du patient manquant: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=str(e)
         )
     
     except Exception as e:
+        logger.exception(f"Erreur inattendue lors de la récupération du patient: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An unexpected error occurred: {str(e)}"
@@ -208,6 +225,9 @@ async def update_patient(
                 detail="You don't have permission to update patient folders"
             )
         
+        # Log des données reçues
+        logger.info(f"Mise à jour du patient {patient_id} avec les données: {data}")
+        
         # Créer le cas d'utilisation avec les dépendances nécessaires
         use_case = UpdatePatientUseCase(
             patient_repository=container.patient_repository(),
@@ -217,27 +237,32 @@ async def update_patient(
         # Exécuter le cas d'utilisation
         result = await use_case.execute(patient_id, data or PatientUpdateDTO())
         
+        logger.info(f"Patient {patient_id} mis à jour avec succès")
         return result
     
     except PatientNotFoundException as e:
+        logger.error(f"Patient non trouvé: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e)
         )
     
     except MissingRequiredFieldException as e:
+        logger.error(f"Champ requis manquant: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
     
     except ValueError as e:
+        logger.error(f"Erreur de validation: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
     
     except Exception as e:
+        logger.exception(f"Erreur inattendue lors de la mise à jour du patient: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An unexpected error occurred: {str(e)}"
@@ -272,6 +297,8 @@ async def delete_patient(
                 detail="Only administrators can delete patient folders"
             )
         
+        logger.info(f"Suppression du patient {patient_id}")
+        
         # Exécuter la suppression directement (pas besoin d'un cas d'utilisation dédié)
         patient_repository = container.patient_repository()
         success = await patient_repository.delete(patient_id)
@@ -279,15 +306,18 @@ async def delete_patient(
         if not success:
             raise PatientNotFoundException(patient_id)
         
+        logger.info(f"Patient {patient_id} supprimé avec succès")
         return None
     
     except PatientNotFoundException as e:
+        logger.error(f"Patient non trouvé: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e)
         )
     
     except Exception as e:
+        logger.exception(f"Erreur inattendue lors de la suppression du patient: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An unexpected error occurred: {str(e)}"
@@ -300,23 +330,9 @@ async def list_patients(
     token_payload: Dict[str, Any] = Depends(extract_token_payload),
     container: Container = Depends(get_container)
 ):
-    """
-    Liste tous les patients avec pagination.
-    
-    Args:
-        skip: Le nombre de patients à sauter
-        limit: Le nombre maximum de patients à retourner
-        token_payload: Les informations du token JWT
-        container: Le container d'injection de dépendances
-        
-    Returns:
-        PatientListResponseDTO: La liste des patients
-        
-    Raises:
-        HTTPException: En cas d'erreur
-    """
+    """Liste tous les patients avec pagination."""
     try:
-        # Vérifier si l'utilisateur a le droit de lister les patients
+        # Vérification des permissions
         user_role = token_payload.get("role")
         if user_role not in ["admin", "doctor", "nurse", "receptionist"]:
             raise HTTPException(
@@ -324,16 +340,12 @@ async def list_patients(
                 detail="You don't have permission to list patients"
             )
         
-        # Récupérer le repository des patients
+        # Récupération des patients
         patient_repository = container.patient_repository()
-        
-        # Récupérer les patients
         patients = await patient_repository.list_all(skip, limit)
-        
-        # Compter le nombre total de patients
         total = await patient_repository.count()
         
-        # Convertir les entités en DTOs de réponse
+        # Conversion en DTOs
         patient_dtos = [
             PatientResponseDTO(
                 id=patient.id,
@@ -364,17 +376,16 @@ async def list_patients(
             for patient in patients
         ]
         
-        # Construire la réponse
-        response = PatientListResponseDTO(
+        # Construction de la réponse
+        return PatientListResponseDTO(
             patients=patient_dtos,
             total=total,
             skip=skip,
             limit=limit
         )
-        
-        return response
     
     except Exception as e:
+        logger.exception(f"Erreur inattendue lors de la liste des patients: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An unexpected error occurred: {str(e)}"
@@ -386,22 +397,9 @@ async def search_patients(
     token_payload: Dict[str, Any] = Depends(extract_token_payload),
     container: Container = Depends(get_container)
 ):
-    """
-    Recherche des patients selon différents critères.
-    
-    Args:
-        search_criteria: Les critères de recherche
-        token_payload: Les informations du token JWT
-        container: Le container d'injection de dépendances
-        
-    Returns:
-        PatientListResponseDTO: La liste des patients correspondant aux critères
-        
-    Raises:
-        HTTPException: En cas d'erreur
-    """
+    """Recherche des patients selon différents critères."""
     try:
-        # Vérifier si l'utilisateur a le droit de rechercher des patients
+        # Vérification des permissions
         user_role = token_payload.get("role")
         if user_role not in ["admin", "doctor", "nurse", "receptionist"]:
             raise HTTPException(
@@ -409,10 +407,8 @@ async def search_patients(
                 detail="You don't have permission to search patients"
             )
         
-        # Récupérer le repository des patients
+        # Recherche des patients
         patient_repository = container.patient_repository()
-        
-        # Rechercher les patients
         patients = await patient_repository.search(
             name=search_criteria.name,
             date_of_birth=search_criteria.date_of_birth,
@@ -422,12 +418,10 @@ async def search_patients(
             limit=search_criteria.limit
         )
         
-        # Compter le nombre total de patients (approximatif)
-        # Note: Dans une implémentation réelle, il faudrait compter le nombre total de patients
-        # correspondant aux critères de recherche, sans la pagination
+        # Compte approximatif pour la pagination
         total = len(patients)
         
-        # Convertir les entités en DTOs de réponse
+        # Conversion en DTOs
         patient_dtos = [
             PatientResponseDTO(
                 id=patient.id,
@@ -458,17 +452,16 @@ async def search_patients(
             for patient in patients
         ]
         
-        # Construire la réponse
-        response = PatientListResponseDTO(
+        # Construction de la réponse
+        return PatientListResponseDTO(
             patients=patient_dtos,
             total=total,
             skip=search_criteria.skip,
             limit=search_criteria.limit
         )
-        
-        return response
     
     except Exception as e:
+        logger.exception(f"Erreur inattendue lors de la recherche de patients: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An unexpected error occurred: {str(e)}"

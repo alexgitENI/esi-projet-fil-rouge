@@ -9,7 +9,7 @@ import {
 
 // Interface pour adapter les réponses de l'API
 interface PatientListResponse {
-  patients: Patient[];
+  patients: any[];
   total: number;
   skip: number;
   limit: number;
@@ -72,48 +72,84 @@ const adaptPatientUpdateDto = (frontDto: PatientUpdateDto): any => {
 
 const patientService = {
   getAllPatients: async (): Promise<Patient[]> => {
-    const response = await apiClient.get<PatientListResponse>(
-      ENDPOINTS.PATIENTS.BASE
-    );
-    return response.patients.map(adaptPatientFromApi);
+    try {
+      const response = await apiClient.get<PatientListResponse>(
+        ENDPOINTS.PATIENTS.BASE
+      );
+      return response.patients.map(adaptPatientFromApi);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des patients:", error);
+      throw error;
+    }
   },
 
   getPatientById: async (id: string): Promise<Patient> => {
-    const response = await apiClient.get<any>(ENDPOINTS.PATIENTS.DETAIL(id));
-    return adaptPatientFromApi(response);
+    try {
+      const response = await apiClient.get<any>(ENDPOINTS.PATIENTS.DETAIL(id));
+      return adaptPatientFromApi(response);
+    } catch (error) {
+      console.error(`Erreur lors de la récupération du patient ${id}:`, error);
+      throw error;
+    }
   },
 
   createPatient: async (patient: PatientCreateDto): Promise<Patient> => {
-    const adaptedPatient = adaptPatientCreateDto(patient);
-    const response = await apiClient.post<any>(
-      ENDPOINTS.PATIENTS.BASE,
-      adaptedPatient
-    );
-    return adaptPatientFromApi(response);
+    try {
+      const adaptedPatient = adaptPatientCreateDto(patient);
+      console.log("Envoi des données au backend:", adaptedPatient);
+      const response = await apiClient.post<any>(
+        ENDPOINTS.PATIENTS.BASE,
+        adaptedPatient
+      );
+      console.log("Réponse du backend après création:", response);
+      return adaptPatientFromApi(response);
+    } catch (error) {
+      console.error("Erreur lors de la création du patient:", error);
+      throw error;
+    }
   },
 
   updatePatient: async (
     id: string,
     patient: PatientUpdateDto
   ): Promise<Patient> => {
-    const adaptedPatient = adaptPatientUpdateDto(patient);
-    const response = await apiClient.put<any>(
-      ENDPOINTS.PATIENTS.DETAIL(id),
-      adaptedPatient
-    );
-    return adaptPatientFromApi(response);
+    try {
+      const adaptedPatient = adaptPatientUpdateDto(patient);
+      console.log(`Mise à jour du patient ${id}:`, adaptedPatient);
+      const response = await apiClient.put<any>(
+        ENDPOINTS.PATIENTS.DETAIL(id),
+        adaptedPatient
+      );
+      console.log("Réponse du backend après mise à jour:", response);
+      return adaptPatientFromApi(response);
+    } catch (error) {
+      console.error(`Erreur lors de la mise à jour du patient ${id}:`, error);
+      throw error;
+    }
   },
 
   deletePatient: async (id: string): Promise<void> => {
-    return apiClient.delete(ENDPOINTS.PATIENTS.DETAIL(id));
+    try {
+      console.log(`Suppression du patient ${id}`);
+      await apiClient.delete(ENDPOINTS.PATIENTS.DETAIL(id));
+      console.log(`Patient ${id} supprimé avec succès`);
+    } catch (error) {
+      console.error(`Erreur lors de la suppression du patient ${id}:`, error);
+      throw error;
+    }
   },
 
   searchPatients: async (query: string): Promise<Patient[]> => {
-    const response = await apiClient.post<PatientListResponse>(
-      ENDPOINTS.PATIENTS.SEARCH,
-      { name: query, skip: 0, limit: 100 }
-    );
-    return response.patients.map(adaptPatientFromApi);
+    try {
+      const response = await apiClient.post<PatientListResponse>(
+        ENDPOINTS.PATIENTS.SEARCH,
+        { name: query, skip: 0, limit: 100 }
+      );
+      return response.patients.map(adaptPatientFromApi);
+    } catch (error) {
+      console.error("Erreur lors de la recherche de patients:", error);
+      throw error;
+    }
   },
 };
 
