@@ -7,10 +7,14 @@ import { z } from "zod";
 import toast from "react-hot-toast";
 import { Patient } from "../../types/patient.types";
 import patientService from "../../api/services/patientService";
+import appointmentService, {
+  AppointmentCreateDto,
+} from "../../api/services/appointmentService";
 import InputField from "../../components/common/InputField/InputField";
 import SelectField from "../../components/common/SelectField/SelectField";
 import Button from "../../components/common/Button/Button";
 import Alert from "../../components/common/Alert/Alert";
+import LoadingScreen from "../../components/common/LoadingScreen/LoadingScreen";
 
 // Schéma de validation
 const appointmentSchema = z.object({
@@ -19,25 +23,19 @@ const appointmentSchema = z.object({
   startTime: z.string().min(1, "L'heure de début est requise"),
   endTime: z.string().min(1, "L'heure de fin est requise"),
   doctorId: z.string().min(1, "Veuillez sélectionner un médecin"),
-  appointmentType: z
-    .string()
-    .min(1, "Veuillez sélectionner un type de rendez-vous"),
+  reason: z.string().optional(),
   notes: z.string().optional(),
 });
 
 type FormData = z.infer<typeof appointmentSchema>;
 
-// Types fictifs pour les médecins et types de rendez-vous
+// Interfaces pour les types de données utilisés
 interface Doctor {
   id: string;
-  name: string;
-  specialty: string;
-}
-
-interface AppointmentType {
-  id: string;
-  name: string;
-  duration: number; // en minutes
+  first_name: string;
+  last_name: string;
+  role: string;
+  specialty?: string;
 }
 
 const CreateAppointmentPage: React.FC = () => {
@@ -49,9 +47,6 @@ const CreateAppointmentPage: React.FC = () => {
 
   const [patients, setPatients] = useState<Patient[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [appointmentTypes, setAppointmentTypes] = useState<AppointmentType[]>(
-    []
-  );
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,97 +65,50 @@ const CreateAppointmentPage: React.FC = () => {
       startTime: "",
       endTime: "",
       doctorId: "",
-      appointmentType: "",
+      reason: "",
       notes: "",
     },
   });
 
   // Observer les champs pour mettre à jour automatiquement l'heure de fin
-  const watchAppointmentType = watch("appointmentType");
   const watchStartTime = watch("startTime");
 
   useEffect(() => {
-    if (watchAppointmentType && watchStartTime) {
-      const selectedType = appointmentTypes.find(
-        (type) => type.id === watchAppointmentType
-      );
-      if (selectedType) {
+    if (watchStartTime) {
+      // Ajoutez 30 minutes par défaut pour la durée du rendez-vous
+      try {
         const startTime = new Date(`2000-01-01T${watchStartTime}`);
-        const endTime = new Date(
-          startTime.getTime() + selectedType.duration * 60000
-        );
+        const endTime = new Date(startTime.getTime() + 30 * 60000);
         const formattedEndTime = endTime.toTimeString().substring(0, 5);
         setValue("endTime", formattedEndTime);
+      } catch (error) {
+        console.error("Erreur lors du calcul de l'heure de fin:", error);
       }
     }
-  }, [watchAppointmentType, watchStartTime, appointmentTypes, setValue]);
+  }, [watchStartTime, setValue]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
 
-        // Simuler l'appel API pour les patients
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        const mockPatients: Patient[] = [
-          {
-            id: "1",
-            firstName: "Sophie",
-            lastName: "Martin",
-            dateOfBirth: "1985-06-15",
-            gender: "female",
-            email: "sophie.martin@example.com",
-            phone: "06 12 34 56 78",
-            createdAt: "2023-02-15T10:30:00Z",
-            updatedAt: "2023-02-15T10:30:00Z",
-          },
-          {
-            id: "2",
-            firstName: "Thomas",
-            lastName: "Dubois",
-            dateOfBirth: "1992-03-22",
-            gender: "male",
-            email: "thomas.dubois@example.com",
-            phone: "06 23 45 67 89",
-            createdAt: "2023-02-14T14:15:00Z",
-            updatedAt: "2023-02-14T14:15:00Z",
-          },
-          {
-            id: "3",
-            firstName: "Emma",
-            lastName: "Petit",
-            dateOfBirth: "1978-11-05",
-            gender: "female",
-            email: "emma.petit@example.com",
-            phone: "06 34 56 78 90",
-            createdAt: "2023-02-13T09:45:00Z",
-            updatedAt: "2023-02-13T09:45:00Z",
-          },
-        ];
-        setPatients(mockPatients);
+        // Récupérer les patients réels
+        const realPatients = await patientService.getAllPatients();
+        console.log("Patients récupérés:", realPatients);
+        setPatients(realPatients);
 
-        // Simuler l'appel API pour les médecins
-        const mockDoctors: Doctor[] = [
+        // Dans une application réelle, vous auriez un service pour les médecins
+        // Pour l'instant, nous utilisons l'ID admin comme seul médecin disponible
+        setDoctors([
           {
-            id: "1",
-            name: "Dr. Jean Dupont",
-            specialty: "Médecin généraliste",
+            id: "00000000-0000-0000-0000-000000000000",
+            first_name: "Admin",
+            last_name: "Utilisateur",
+            role: "ADMIN",
           },
-          { id: "2", name: "Dr. Marie Lambert", specialty: "Cardiologue" },
-          { id: "3", name: "Dr. Robert Martin", specialty: "Dermatologue" },
-        ];
-        setDoctors(mockDoctors);
-
-        // Simuler l'appel API pour les types de rendez-vous
-        const mockAppointmentTypes: AppointmentType[] = [
-          { id: "1", name: "Consultation standard", duration: 15 },
-          { id: "2", name: "Consultation longue", duration: 30 },
-          { id: "3", name: "Urgence", duration: 20 },
-          { id: "4", name: "Suivi de traitement", duration: 15 },
-        ];
-        setAppointmentTypes(mockAppointmentTypes);
+        ]);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Erreur lors du chargement des données:", error);
         setError("Erreur lors du chargement des données");
       } finally {
         setLoading(false);
@@ -175,54 +123,62 @@ const CreateAppointmentPage: React.FC = () => {
       setIsSubmitting(true);
       setError(null);
 
+      console.log("Données du formulaire:", data);
+
+      // S'assurer que les formats de date et d'heure sont corrects
+      const startDateTime = new Date(`${data.date}T${data.startTime}:00`);
+      const endDateTime = new Date(`${data.date}T${data.endTime}:00`);
+
+      // Vérifier que les dates sont valides
+      if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
+        throw new Error("Dates ou heures invalides");
+      }
+
+      // Formater les dates en ISO pour le backend
+      const startISO = startDateTime.toISOString();
+      const endISO = endDateTime.toISOString();
+
+      console.log("Date de début formatée:", startISO);
+      console.log("Date de fin formatée:", endISO);
+
       // Formater les données pour l'API
-      const appointmentData = {
-        ...data,
-        startDateTime: `${data.date}T${data.startTime}:00`,
-        endDateTime: `${data.date}T${data.endTime}:00`,
+      const appointmentData: AppointmentCreateDto = {
+        patientId: data.patientId,
+        doctorId: data.doctorId,
+        startTime: startISO,
+        endTime: endISO,
+        reason: data.reason || "Consultation",
+        notes: data.notes,
       };
 
-      // En environnement réel, nous utiliserions :
-      // await appointmentService.createAppointment(appointmentData);
+      console.log("Données envoyées à l'API:", appointmentData);
 
-      // Simuler l'appel API
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Appel à l'API pour créer le rendez-vous
+      const result = await appointmentService.createAppointment(
+        appointmentData
+      );
 
-      toast.success("Rendez-vous créé avec succès");
-      navigate("/appointments");
+      if (result) {
+        console.log("Rendez-vous créé avec succès:", result);
+        toast.success("Rendez-vous créé avec succès");
+        navigate("/appointments");
+      } else {
+        throw new Error("Échec de la création du rendez-vous");
+      }
     } catch (error) {
       console.error("Error creating appointment:", error);
-      setError("Une erreur est survenue lors de la création du rendez-vous");
+      setError(
+        `Une erreur est survenue lors de la création du rendez-vous: ${
+          error instanceof Error ? error.message : "Erreur inconnue"
+        }`
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <svg
-          className="animate-spin h-8 w-8 text-primary-600"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          ></circle>
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          ></path>
-        </svg>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (
@@ -259,6 +215,14 @@ const CreateAppointmentPage: React.FC = () => {
         <Alert variant="error" message={error} onClose={() => setError(null)} />
       )}
 
+      {patients.length === 0 && (
+        <Alert
+          variant="warning"
+          message="Aucun patient n'est disponible. Veuillez d'abord créer un patient avant de planifier un rendez-vous."
+          className="mb-4"
+        />
+      )}
+
       {/* Formulaire */}
       <div className="card">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -287,7 +251,7 @@ const CreateAppointmentPage: React.FC = () => {
                 error={errors.doctorId?.message}
                 options={doctors.map((doctor) => ({
                   value: doctor.id,
-                  label: `${doctor.name} (${doctor.specialty})`,
+                  label: `${doctor.first_name} ${doctor.last_name}`,
                 }))}
                 required
               />
@@ -301,16 +265,11 @@ const CreateAppointmentPage: React.FC = () => {
                 required
               />
 
-              <SelectField
-                id="appointmentType"
-                label="Type de rendez-vous"
-                {...register("appointmentType")}
-                error={errors.appointmentType?.message}
-                options={appointmentTypes.map((type) => ({
-                  value: type.id,
-                  label: `${type.name} (${type.duration} min)`,
-                }))}
-                required
+              <InputField
+                id="reason"
+                label="Motif du rendez-vous"
+                {...register("reason")}
+                error={errors.reason?.message}
               />
 
               <InputField
@@ -360,7 +319,12 @@ const CreateAppointmentPage: React.FC = () => {
             >
               Annuler
             </Button>
-            <Button type="submit" variant="primary" isLoading={isSubmitting}>
+            <Button
+              type="submit"
+              variant="primary"
+              isLoading={isSubmitting}
+              disabled={isSubmitting || patients.length === 0}
+            >
               {isSubmitting ? "Création en cours..." : "Créer le rendez-vous"}
             </Button>
           </div>
