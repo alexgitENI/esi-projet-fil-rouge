@@ -17,7 +17,7 @@ from appointment_management.application.usecases.get_patient_appointments_usecas
 from patient_management.domain.exceptions.patient_exceptions import PatientNotFoundException
 
 # Créer un router pour les endpoints des rendez-vous
-router = APIRouter(prefix="/api/appointments", tags=["appointments"])
+router = APIRouter(prefix="/appointments", tags=["appointments"])
 
 def get_container():
     """

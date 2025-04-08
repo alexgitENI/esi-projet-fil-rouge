@@ -10,7 +10,7 @@ from shared.application.dtos.common_dtos import TokenResponseDTO
 from shared.infrastructure.database.models.user_model import UserModel
 
 # Créer un router pour les endpoints d'authentification
-router = APIRouter(prefix="/api/auth", tags=["auth"])
+router = APIRouter(prefix="/auth", tags=["auth"])
 
 def get_container():
     """Fournit le container d'injection de dépendances."""

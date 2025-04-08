@@ -9,7 +9,7 @@ class ApiClient {
   private constructor() {
     // S'assurer que l'URL de base se termine correctement pour éviter les doublons
     this.axiosInstance = axios.create({
-      baseURL: API_URL, // Retirer le "/api" ici pour éviter la duplication
+      baseURL: API_URL, // Ne pas ajouter "/api" ici
       headers: {
         "Content-Type": "application/json",
       },
@@ -81,9 +81,12 @@ class ApiClient {
     );
   }
 
+  // Méthodes corrigées pour utiliser correctement l'instance Axios
+
   public async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     try {
-      return await this.axiosInstance.get<T>(url, config);
+      const response = await this.axiosInstance.get<T>(url, config);
+      return response.data; 
     } catch (error) {
       console.error(`Erreur GET ${url}:`, error);
       throw error;
@@ -96,7 +99,8 @@ class ApiClient {
     config?: AxiosRequestConfig
   ): Promise<T> {
     try {
-      return await this.axiosInstance.post<T>(url, data, config);
+      const response = await this.axiosInstance.post<T>(url, data, config);
+      return response.data; 
     } catch (error) {
       console.error(`Erreur POST ${url}:`, error);
       throw error;
@@ -109,7 +113,8 @@ class ApiClient {
     config?: AxiosRequestConfig
   ): Promise<T> {
     try {
-      return await this.axiosInstance.put<T>(url, data, config);
+      const response = await this.axiosInstance.put<T>(url, data, config);
+      return response.data; 
     } catch (error) {
       console.error(`Erreur PUT ${url}:`, error);
       throw error;
@@ -122,7 +127,8 @@ class ApiClient {
     config?: AxiosRequestConfig
   ): Promise<T> {
     try {
-      return await this.axiosInstance.patch<T>(url, data, config);
+      const response = await this.axiosInstance.patch<T>(url, data, config);
+      return response.data;
     } catch (error) {
       console.error(`Erreur PATCH ${url}:`, error);
       throw error;
@@ -131,7 +137,8 @@ class ApiClient {
 
   public async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     try {
-      return await this.axiosInstance.delete<T>(url, config);
+      const response = await this.axiosInstance.delete<T>(url, config);
+      return response.data;
     } catch (error) {
       console.error(`Erreur DELETE ${url}:`, error);
       throw error;

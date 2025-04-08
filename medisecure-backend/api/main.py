@@ -1,3 +1,4 @@
+# medisecure-backend/api/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
@@ -16,7 +17,6 @@ from api.middlewares.authentication_middleware import AuthenticationMiddleware
 
 # Importer les routers
 from patient_management.infrastructure.adapters.primary.controllers.patient_controller import router as patient_router
-# Importer le nouveau router d'authentification
 from api.controllers.auth_controller import router as auth_router
 from appointment_management.infrastructure.adapters.primary.controllers.appointment_controller import router as appointment_router
 
@@ -33,7 +33,6 @@ logger = logging.getLogger(__name__)
 # Charger les variables d'environnement
 load_dotenv()
 
-# Initialiser le container
 # Initialiser le container
 container = Container()
 try:
@@ -74,10 +73,11 @@ app.add_exception_handler(AppException, app_exception_handler)
 app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
-# Enregistrement des routers
-app.include_router(patient_router)
-app.include_router(auth_router)
-app.include_router(appointment_router) 
+# Modification importante: Appliquer le préfixe API à tous les routers
+# Ne pas inclure directement les routers sans préfixe
+app.include_router(patient_router, prefix=API_PREFIX)
+app.include_router(auth_router, prefix=API_PREFIX)
+app.include_router(appointment_router, prefix=API_PREFIX)
 
 @app.get(f"{API_PREFIX}/health")
 async def health_check():
@@ -95,6 +95,10 @@ async def startup_event():
     logger.info(f"Version: {API_VERSION}")
     logger.info(f"Environnement: {os.getenv('ENVIRONMENT', 'development')}")
     logger.info(f"Préfixe API: {API_PREFIX}")
+    
+    # Ajouté pour déboguer: afficher toutes les routes
+    for route in app.routes:
+        logger.info(f"Route: {route.path}, methods: {route.methods}")
 
 # Événement d'arrêt de l'application
 @app.on_event("shutdown")
