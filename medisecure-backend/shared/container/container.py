@@ -1,3 +1,4 @@
+# medisecure-backend/shared/container/container.py
 from dependency_injector import containers, providers
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
@@ -74,31 +75,26 @@ class Container(containers.DeclarativeContainer):
     patient_service = providers.Factory(PatientService)
     appointment_service = providers.Factory(AppointmentService)
     
-    # Adaptateurs secondaires - Shared
+    # Adaptateurs secondaires - Repositories
+    # Utilisons les repositories Postgres par défaut
     user_repository = providers.Factory(
         PostgresUserRepository,
         session=db_session
     )
     
-    # Version in-memory pour les tests
-    user_repository_in_memory = providers.Factory(InMemoryUserRepository)
-    
-    # Patient Management - Repositories
     patient_repository = providers.Factory(
         PostgresPatientRepository,
         session=db_session
     )
     
-    # Version in-memory pour les tests
-    patient_repository_in_memory = providers.Factory(InMemoryPatientRepository)
-    
-    # Appointment Management - Repositories
     appointment_repository = providers.Factory(
         PostgresAppointmentRepository,
         session=db_session
     )
     
-    # Version in-memory pour les tests
+    # Repositories en mémoire pour les tests
+    user_repository_in_memory = providers.Factory(InMemoryUserRepository)
+    patient_repository_in_memory = providers.Factory(InMemoryPatientRepository)
     appointment_repository_in_memory = providers.Factory(InMemoryAppointmentRepository)
     
     # Services d'infrastructure

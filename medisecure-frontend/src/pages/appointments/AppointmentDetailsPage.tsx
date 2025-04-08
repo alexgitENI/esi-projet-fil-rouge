@@ -1,102 +1,107 @@
 // src/pages/appointments/AppointmentDetailsPage.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import appointmentService, {
   Appointment,
 } from "../../api/services/appointmentService";
+import patientService from "../../api/services/patientService";
 import Button from "../../components/common/Button/Button";
 import Alert from "../../components/common/Alert/Alert";
+import LoadingScreen from "../../components/common/LoadingScreen/LoadingScreen";
 
 const AppointmentDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [appointment, setAppointment] = useState<Appointment | null>(null);
+  const [patientName, setPatientName] = useState<string>("Chargement...");
+  const [doctorName, setDoctorName] = useState<string>("Chargement...");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  useEffect(() => {
-    const fetchAppointment = async () => {
-      if (!id) return;
+  // Fonction pour charger les détails du rendez-vous
+  const fetchAppointmentDetails = useCallback(async () => {
+    if (!id) return;
 
-      try {
-        setLoading(true);
+    try {
+      setLoading(true);
+      setError(null);
 
-        // En environnement réel, nous utiliserions :
-        // const data = await appointmentService.getAppointmentById(id);
+      // Récupérer les données du rendez-vous
+      const appointmentData = await appointmentService.getAppointmentById(id);
 
-        // Simuler un appel API
-        await new Promise((resolve) => setTimeout(resolve, 800));
-
-        // Données de test
-        const mockAppointment: Appointment = {
-          id,
-          patientId: "1",
-          doctorId: "1",
-          startTime: "2023-03-15T10:00:00Z",
-          endTime: "2023-03-15T10:30:00Z",
-          status: "confirmed",
-          reason: "Consultation de routine",
-          notes:
-            "Patient se plaint de maux de tête fréquents depuis deux semaines.",
-          createdAt: "2023-03-10T14:30:00Z",
-          updatedAt: "2023-03-10T14:30:00Z",
-        };
-
-        // Simuler également les informations du patient et du médecin
-        const patientName = "Sophie Martin";
-        const doctorName = "Dr. Jean Dupont";
-
-        setAppointment({
-          ...mockAppointment,
-          patientName, // Ajouter au type existant pour l'affichage
-          doctorName, // Ajouter au type existant pour l'affichage
-        } as Appointment & { patientName: string; doctorName: string });
-      } catch (error) {
-        console.error("Error fetching appointment:", error);
-        setError("Erreur lors du chargement des détails du rendez-vous");
-      } finally {
+      if (!appointmentData) {
+        setError("Ce rendez-vous n'existe pas ou a été supprimé");
         setLoading(false);
+        return;
       }
-    };
 
-    fetchAppointment();
+      setAppointment(appointmentData);
+
+      // Essayer de récupérer les détails du patient
+      try {
+        const patientData = await patientService.getPatientById(
+          appointmentData.patientId
+        );
+        if (patientData) {
+          setPatientName(`${patientData.firstName} ${patientData.lastName}`);
+        } else {
+          setPatientName(`Patient (ID: ${appointmentData.patientId})`);
+        }
+      } catch (error) {
+        console.error("Erreur lors de la récupération du patient:", error);
+        setPatientName(`Patient (ID: ${appointmentData.patientId})`);
+      }
+
+      // En pratique, il faudrait aussi récupérer les informations du médecin
+      setDoctorName(`Médecin (ID: ${appointmentData.doctorId})`);
+    } catch (error) {
+      console.error("Erreur lors du chargement du rendez-vous:", error);
+      setError("Erreur lors du chargement des détails du rendez-vous");
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
+
+  useEffect(() => {
+    fetchAppointmentDetails();
+  }, [fetchAppointmentDetails]);
 
   const handleStatusChange = async (newStatus: Appointment["status"]) => {
     if (!id || !appointment) return;
 
     try {
       setIsProcessing(true);
+      setError(null);
 
-      // En environnement réel, nous utiliserions :
-      // let updatedAppointment;
-      // if (newStatus === "cancelled") {
-      //   updatedAppointment = await appointmentService.cancelAppointment(id);
-      // } else if (newStatus === "confirmed") {
-      //   updatedAppointment = await appointmentService.confirmAppointment(id);
-      // } else if (newStatus === "completed") {
-      //   updatedAppointment = await appointmentService.completeAppointment(id);
-      // }
+      let updatedAppointment = null;
 
-      // Simuler l'appel API
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      if (newStatus === "cancelled") {
+        updatedAppointment = await appointmentService.cancelAppointment(id);
+      } else if (newStatus === "confirmed") {
+        updatedAppointment = await appointmentService.confirmAppointment(id);
+      } else if (newStatus === "completed") {
+        updatedAppointment = await appointmentService.completeAppointment(id);
+      }
 
-      // Mettre à jour l'état local
-      setAppointment((prev) => (prev ? { ...prev, status: newStatus } : null));
+      if (updatedAppointment) {
+        setAppointment(updatedAppointment);
 
-      const statusMessages = {
-        confirmed: "Rendez-vous confirmé avec succès",
-        cancelled: "Rendez-vous annulé avec succès",
-        completed: "Rendez-vous marqué comme terminé",
-        scheduled: "Rendez-vous reprogrammé avec succès",
-      };
+        const statusMessages = {
+          confirmed: "Rendez-vous confirmé avec succès",
+          cancelled: "Rendez-vous annulé avec succès",
+          completed: "Rendez-vous marqué comme terminé",
+          scheduled: "Rendez-vous reprogrammé avec succès",
+        };
 
-      toast.success(statusMessages[newStatus]);
+        toast.success(statusMessages[newStatus]);
+      } else {
+        toast.error("Erreur lors de la mise à jour du statut");
+      }
     } catch (error) {
       console.error(
-        `Error updating appointment status to ${newStatus}:`,
+        `Erreur lors de la mise à jour du statut vers ${newStatus}:`,
         error
       );
       setError(`Erreur lors de la mise à jour du statut du rendez-vous`);
@@ -123,30 +128,7 @@ const AppointmentDetailsPage: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <svg
-          className="animate-spin h-8 w-8 text-primary-600"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          ></circle>
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          ></path>
-        </svg>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (!appointment) {
@@ -216,9 +198,9 @@ const AppointmentDetailsPage: React.FC = () => {
           <Button variant="outline" onClick={() => navigate(-1)}>
             Retour
           </Button>
-          <Link to={`/appointments/${id}/edit`}>
-            <Button variant="primary">Modifier</Button>
-          </Link>
+          <Button variant="primary" onClick={fetchAppointmentDetails}>
+            Actualiser
+          </Button>
         </div>
       </div>
 
@@ -245,12 +227,8 @@ const AppointmentDetailsPage: React.FC = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <h3 className="text-sm font-medium text-slate-500">
-                  Patient
-                </h3>
-                <p className="mt-1 text-slate-900">
-                  {(appointment as any).patientName}
-                </p>
+                <h3 className="text-sm font-medium text-slate-500">Patient</h3>
+                <p className="mt-1 text-slate-900">{patientName}</p>
                 <Link
                   to={`/patients/${appointment.patientId}`}
                   className="text-sm text-primary-600 hover:text-primary-800"
@@ -260,12 +238,8 @@ const AppointmentDetailsPage: React.FC = () => {
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-slate-500">
-                  Médecin
-                </h3>
-                <p className="mt-1 text-slate-900">
-                  {(appointment as any).doctorName}
-                </p>
+                <h3 className="text-sm font-medium text-slate-500">Médecin</h3>
+                <p className="mt-1 text-slate-900">{doctorName}</p>
               </div>
             </div>
 
@@ -276,9 +250,7 @@ const AppointmentDetailsPage: React.FC = () => {
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-slate-500">
-                  Horaire
-                </h3>
+                <h3 className="text-sm font-medium text-slate-500">Horaire</h3>
                 <p className="mt-1 text-slate-900">
                   {startDateTime.time} - {endDateTime.time}
                 </p>

@@ -1,18 +1,11 @@
 // src/pages/appointments/AppointmentsCalendarPage.tsx
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-
-// Types pour les rendez-vous
-interface Appointment {
-  id: string;
-  patientId: string;
-  patientName: string;
-  startTime: string;
-  endTime: string;
-  status: 'scheduled' | 'confirmed' | 'cancelled' | 'completed';
-  notes?: string;
-}
+import appointmentService, { Appointment } from "../../api/services/appointmentService";
+import Button from "../../components/common/Button/Button";
+import LoadingScreen from "../../components/common/LoadingScreen/LoadingScreen";
+import Alert from "../../components/common/Alert/Alert";
 
 // Types pour les jours du calendrier
 interface CalendarDay {
@@ -23,140 +16,47 @@ interface CalendarDay {
 }
 
 const AppointmentsCalendarPage: React.FC = () => {
+  const navigate = useNavigate();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [calendarDays, setCalendarDays] = useState<CalendarDay[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [dayAppointments, setDayAppointments] = useState<Appointment[]>([]);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Fonction pour déclencher un rafraîchissement des données
+  const refreshData = useCallback(() => {
+    setRefreshTrigger((prev) => prev + 1);
+  }, []);
 
   // Charger les rendez-vous
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
         setLoading(true);
+        setError(null);
 
-        // Simuler l'appel API
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        const year = currentMonth.getFullYear();
+        const month = currentMonth.getMonth() + 1; // JavaScript months are 0-based
 
-        // Données de test
-        const mockAppointments: Appointment[] = [
-          {
-            id: "1",
-            patientId: "101",
-            patientName: "Sophie Martin",
-            startTime: new Date(
-              currentMonth.getFullYear(),
-              currentMonth.getMonth(),
-              15,
-              10,
-              0
-            ).toISOString(),
-            endTime: new Date(
-              currentMonth.getFullYear(),
-              currentMonth.getMonth(),
-              15,
-              10,
-              30
-            ).toISOString(),
-            status: "confirmed",
-            notes: "Consultation de routine",
-          },
-          {
-            id: "2",
-            patientId: "102",
-            patientName: "Thomas Dubois",
-            startTime: new Date(
-              currentMonth.getFullYear(),
-              currentMonth.getMonth(),
-              15,
-              11,
-              0
-            ).toISOString(),
-            endTime: new Date(
-              currentMonth.getFullYear(),
-              currentMonth.getMonth(),
-              15,
-              11,
-              30
-            ).toISOString(),
-            status: "scheduled",
-            notes: "Première consultation",
-          },
-          {
-            id: "3",
-            patientId: "103",
-            patientName: "Emma Petit",
-            startTime: new Date(
-              currentMonth.getFullYear(),
-              currentMonth.getMonth(),
-              18,
-              14,
-              0
-            ).toISOString(),
-            endTime: new Date(
-              currentMonth.getFullYear(),
-              currentMonth.getMonth(),
-              18,
-              14,
-              45
-            ).toISOString(),
-            status: "confirmed",
-            notes: "Suivi traitement",
-          },
-          {
-            id: "4",
-            patientId: "104",
-            patientName: "Lucas Bernard",
-            startTime: new Date(
-              currentMonth.getFullYear(),
-              currentMonth.getMonth(),
-              22,
-              9,
-              30
-            ).toISOString(),
-            endTime: new Date(
-              currentMonth.getFullYear(),
-              currentMonth.getMonth(),
-              22,
-              10,
-              0
-            ).toISOString(),
-            status: "scheduled",
-          },
-          {
-            id: "5",
-            patientId: "105",
-            patientName: "Julie Moreau",
-            startTime: new Date(
-              currentMonth.getFullYear(),
-              currentMonth.getMonth(),
-              23,
-              15,
-              30
-            ).toISOString(),
-            endTime: new Date(
-              currentMonth.getFullYear(),
-              currentMonth.getMonth(),
-              23,
-              16,
-              0
-            ).toISOString(),
-            status: "confirmed",
-          },
-        ];
+        console.log(`Fetching appointments for ${year}/${month}`);
+        const fetchedAppointments =
+          await appointmentService.getAppointmentsCalendar(year, month);
 
-        setAppointments(mockAppointments);
+        console.log("Fetched appointments:", fetchedAppointments);
+        setAppointments(fetchedAppointments);
       } catch (error) {
         console.error("Error fetching appointments:", error);
-        toast.error("Erreur lors du chargement des rendez-vous");
+        setError("Erreur lors du chargement des rendez-vous");
       } finally {
         setLoading(false);
       }
     };
 
     fetchAppointments();
-  }, [currentMonth]);
+  }, [currentMonth, refreshTrigger]);
 
   // Générer les jours du calendrier
   useEffect(() => {
@@ -171,11 +71,10 @@ const AppointmentsCalendarPage: React.FC = () => {
 
       // Jour de la semaine du premier jour (0: dimanche, 1: lundi, ..., 6: samedi)
       const firstDayOfWeek = firstDayOfMonth.getDay();
-      // Nombre de jours dans le mois
-      const daysInMonth = lastDayOfMonth.getDate();
 
       // Calculer le premier jour à afficher (peut être du mois précédent)
       const start = new Date(firstDayOfMonth);
+      // Ajuster pour commencer le lundi (0 = dimanche, 1 = lundi, etc.)
       start.setDate(
         start.getDate() - (firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1)
       );
@@ -190,7 +89,7 @@ const AppointmentsCalendarPage: React.FC = () => {
         date.setDate(date.getDate() + i);
 
         const isCurrentMonth = date.getMonth() === month;
-        const isToday = date.getTime() === today.getTime();
+        const isToday = date.toDateString() === today.toDateString();
 
         // Filtrer les rendez-vous pour cette journée
         const dayAppts = appointments.filter((appointment) => {
@@ -213,7 +112,9 @@ const AppointmentsCalendarPage: React.FC = () => {
       setCalendarDays(days);
     };
 
-    generateCalendarDays();
+    if (appointments.length > 0 || calendarDays.length === 0) {
+      generateCalendarDays();
+    }
   }, [currentMonth, appointments]);
 
   // Mettre à jour les rendez-vous du jour sélectionné
@@ -279,6 +180,60 @@ const AppointmentsCalendarPage: React.FC = () => {
     setSelectedDay(day.date);
   };
 
+  // Gérer le changement de statut d'un rendez-vous
+  const handleStatusChange = async (
+    id: string,
+    newStatus: Appointment["status"]
+  ) => {
+    try {
+      let result = null;
+
+      if (newStatus === "cancelled") {
+        result = await appointmentService.cancelAppointment(id);
+      } else if (newStatus === "confirmed") {
+        result = await appointmentService.confirmAppointment(id);
+      } else if (newStatus === "completed") {
+        result = await appointmentService.completeAppointment(id);
+      }
+
+      if (result) {
+        // Mettre à jour localement
+        setAppointments((prev) =>
+          prev.map((apt) =>
+            apt.id === id ? { ...apt, status: newStatus } : apt
+          )
+        );
+
+        // Mettre à jour les rendez-vous du jour
+        if (selectedDay) {
+          setDayAppointments((prev) =>
+            prev.map((apt) =>
+              apt.id === id ? { ...apt, status: newStatus } : apt
+            )
+          );
+        }
+
+        // Message de succès
+        const messages = {
+          confirmed: "Rendez-vous confirmé",
+          cancelled: "Rendez-vous annulé",
+          completed: "Rendez-vous marqué comme terminé",
+          scheduled: "Rendez-vous replanifié",
+        };
+
+        toast.success(messages[newStatus]);
+      } else {
+        toast.error("Erreur lors de la mise à jour du rendez-vous");
+      }
+    } catch (error) {
+      console.error(
+        `Erreur lors de la mise à jour du statut vers ${newStatus}:`,
+        error
+      );
+      toast.error("Erreur lors de la mise à jour du statut");
+    }
+  };
+
   // Obtenir le statut d'un rendez-vous sous forme de badge
   const getStatusBadge = (status: Appointment["status"]) => {
     switch (status) {
@@ -298,30 +253,7 @@ const AppointmentsCalendarPage: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <svg
-          className="animate-spin h-8 w-8 text-primary-600"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          ></circle>
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          ></path>
-        </svg>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (
@@ -352,8 +284,29 @@ const AppointmentsCalendarPage: React.FC = () => {
             </svg>
             Nouveau rendez-vous
           </Link>
+          <Button variant="outline" onClick={refreshData}>
+            <svg
+              className="h-5 w-5 mr-2"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            Actualiser
+          </Button>
         </div>
       </div>
+
+      {error && (
+        <Alert variant="error" message={error} onClose={() => setError(null)} />
+      )}
 
       {/* Calendrier */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -418,16 +371,14 @@ const AppointmentsCalendarPage: React.FC = () => {
 
             {/* Grille des jours de la semaine */}
             <div className="grid grid-cols-7 gap-px bg-slate-200">
-              {["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map(
-                (day, index) => (
-                  <div
-                    key={day}
-                    className="bg-slate-100 text-center py-2 text-sm font-medium text-slate-600"
-                  >
-                    {day}
-                  </div>
-                )
-              )}
+              {["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map((day) => (
+                <div
+                  key={day}
+                  className="bg-slate-100 text-center py-2 text-sm font-medium text-slate-600"
+                >
+                  {day}
+                </div>
+              ))}
             </div>
 
             {/* Grille des jours */}
@@ -469,8 +420,10 @@ const AppointmentsCalendarPage: React.FC = () => {
                               : "bg-slate-100 text-slate-800"
                           }`}
                         >
-                          {formatTime(appointment.startTime)} -{" "}
-                          {appointment.patientName}
+                          {formatTime(appointment.startTime)} -
+                          {appointment.patientId
+                            ? "ID: " + appointment.patientId.substring(0, 8)
+                            : "Patient"}
                         </div>
                       ))}
                       {day.appointments.length > 3 && (
@@ -542,7 +495,10 @@ const AppointmentsCalendarPage: React.FC = () => {
                     {getStatusBadge(appointment.status)}
                   </div>
                   <div className="text-slate-900 font-medium mb-1">
-                    {appointment.patientName}
+                    Patient ID: {appointment.patientId}
+                  </div>
+                  <div className="text-slate-900 font-medium mb-1">
+                    Médecin ID: {appointment.doctorId}
                   </div>
                   {appointment.notes && (
                     <div className="text-sm text-slate-600 mb-2">
@@ -562,6 +518,40 @@ const AppointmentsCalendarPage: React.FC = () => {
                     >
                       Voir patient
                     </Link>
+
+                    {/* Actions de changement de statut */}
+                    {appointment.status === "scheduled" && (
+                      <button
+                        onClick={() =>
+                          handleStatusChange(appointment.id, "confirmed")
+                        }
+                        className="text-sm text-green-600 hover:text-green-700"
+                      >
+                        Confirmer
+                      </button>
+                    )}
+
+                    {(appointment.status === "scheduled" ||
+                      appointment.status === "confirmed") && (
+                      <>
+                        <button
+                          onClick={() =>
+                            handleStatusChange(appointment.id, "completed")
+                          }
+                          className="text-sm text-blue-600 hover:text-blue-700"
+                        >
+                          Terminer
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleStatusChange(appointment.id, "cancelled")
+                          }
+                          className="text-sm text-red-600 hover:text-red-700"
+                        >
+                          Annuler
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}
