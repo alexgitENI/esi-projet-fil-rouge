@@ -29,7 +29,8 @@ from patient_management.domain.exceptions.patient_exceptions import (
 logger = logging.getLogger(__name__)
 
 # Créer un router pour les endpoints des patients
-router = APIRouter(prefix="/api/patients", tags=["patients"])
+# Correction du préfixe pour correspondre à ce que le frontend attend
+router = APIRouter(prefix="/patients", tags=["patients"])
 
 def check_role_permission(role: str, allowed_roles: list) -> bool:
     """
