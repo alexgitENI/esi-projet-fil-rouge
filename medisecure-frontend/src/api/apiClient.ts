@@ -1,10 +1,5 @@
 // src/api/apiClient.ts
-import axios, {
-  AxiosError,
-  AxiosInstance,
-  AxiosRequestConfig,
-  AxiosResponse,
-} from "axios";
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
 import { API_URL } from "./endpoints";
 
 class ApiClient {
@@ -12,8 +7,9 @@ class ApiClient {
   private axiosInstance: AxiosInstance;
 
   private constructor() {
+    // S'assurer que l'URL de base se termine correctement pour éviter les doublons
     this.axiosInstance = axios.create({
-      baseURL: API_URL + "/api", // Ajouter /api une seule fois ici, pas dans chaque endpoint
+      baseURL: API_URL + "/api", // Utiliser uniquement un préfixe /api ici
       headers: {
         "Content-Type": "application/json",
       },
@@ -54,7 +50,7 @@ class ApiClient {
     this.axiosInstance.interceptors.response.use(
       (response) => {
         console.log(`Réponse de ${response.config.url}:`, response.data);
-        return response; // Retourne la réponse complète, pas juste les données
+        return response; // Ne pas modifier la réponse ici
       },
       async (error: AxiosError) => {
         if (error.response) {
@@ -88,7 +84,7 @@ class ApiClient {
   public async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     try {
       const response = await this.axiosInstance.get<T>(url, config);
-      return response.data;
+      return response.data; // Extraire les données de la réponse
     } catch (error) {
       console.error(`Erreur GET ${url}:`, error);
       throw error;
@@ -130,7 +126,7 @@ class ApiClient {
   ): Promise<T> {
     try {
       const response = await this.axiosInstance.patch<T>(url, data, config);
-      return response.data;
+      return response.data; // Extraire les données de la réponse
     } catch (error) {
       console.error(`Erreur PATCH ${url}:`, error);
       throw error;
@@ -140,7 +136,7 @@ class ApiClient {
   public async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     try {
       const response = await this.axiosInstance.delete<T>(url, config);
-      return response.data;
+      return response.data; // Extraire les données de la réponse
     } catch (error) {
       console.error(`Erreur DELETE ${url}:`, error);
       throw error;
