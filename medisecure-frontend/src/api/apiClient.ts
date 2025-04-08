@@ -13,7 +13,7 @@ class ApiClient {
 
   private constructor() {
     this.axiosInstance = axios.create({
-      baseURL: API_URL,
+      baseURL: API_URL + "/api", // Ajouter /api une seule fois ici, pas dans chaque endpoint
       headers: {
         "Content-Type": "application/json",
       },
@@ -88,7 +88,7 @@ class ApiClient {
   public async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     try {
       const response = await this.axiosInstance.get<T>(url, config);
-      return response.data; 
+      return response.data;
     } catch (error) {
       console.error(`Erreur GET ${url}:`, error);
       throw error;
@@ -130,7 +130,7 @@ class ApiClient {
   ): Promise<T> {
     try {
       const response = await this.axiosInstance.patch<T>(url, data, config);
-      return response.data; 
+      return response.data;
     } catch (error) {
       console.error(`Erreur PATCH ${url}:`, error);
       throw error;
@@ -140,7 +140,7 @@ class ApiClient {
   public async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     try {
       const response = await this.axiosInstance.delete<T>(url, config);
-      return response.data; 
+      return response.data;
     } catch (error) {
       console.error(`Erreur DELETE ${url}:`, error);
       throw error;

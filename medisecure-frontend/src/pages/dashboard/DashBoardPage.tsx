@@ -1,10 +1,12 @@
 // src/pages/dashboard/DashboardPage.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import apiClient from "../../api/apiClient";
-import { ENDPOINTS } from "../../api/endpoints";
+import patientService from "../../api/services/patientService";
+import appointmentService from "../../api/services/appointmentService";
 import { Patient } from "../../types/patient.types";
+import { Appointment } from "../../api/services/appointmentService";
+import LoadingScreen from "../../components/common/LoadingScreen/LoadingScreen";
+import Alert from "../../components/common/Alert/Alert";
 
 // Types pour les statistiques
 interface DashboardStats {
@@ -14,16 +16,7 @@ interface DashboardStats {
   pendingMedicalRecords: number;
 }
 
-// Type pour les rendez-vous simplifiés
-interface AppointmentPreview {
-  id: string;
-  patientName: string;
-  startTime: string;
-  status: string;
-}
-
 const DashboardPage: React.FC = () => {
-  const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
     totalPatients: 0,
     totalAppointmentsToday: 0,
@@ -32,102 +25,79 @@ const DashboardPage: React.FC = () => {
   });
   const [recentPatients, setRecentPatients] = useState<Patient[]>([]);
   const [upcomingAppointments, setUpcomingAppointments] = useState<
-    AppointmentPreview[]
+    Appointment[]
   >([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fonction pour charger les données du tableau de bord
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Récupérer les patients
+      const patients = await patientService.getAllPatients();
+      setRecentPatients(patients.slice(0, 5)); // Les 5 plus récents
+
+      // Récupérer les rendez-vous
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const todayStr = today.toISOString().split("T")[0];
+
+      // Calcul de la date dans 7 jours
+      const nextWeek = new Date(today);
+      nextWeek.setDate(nextWeek.getDate() + 7);
+      const nextWeekStr = nextWeek.toISOString().split("T")[0];
+
+      // Filtre pour aujourd'hui et la semaine à venir
+      const filter = {
+        startDate: todayStr,
+        endDate: nextWeekStr,
+      };
+
+      const appointments = await appointmentService.getAllAppointments(filter);
+
+      // Filtrer les rendez-vous d'aujourd'hui
+      const todayAppointments = appointments.filter((appointment) => {
+        const appointmentDate = new Date(appointment.startTime);
+        return appointmentDate.toDateString() === today.toDateString();
+      });
+
+      // Prendre les 4 prochains rendez-vous à venir pour l'affichage
+      const upcoming = appointments
+        .filter((appointment) => new Date(appointment.startTime) >= today)
+        .sort(
+          (a, b) =>
+            new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+        )
+        .slice(0, 4);
+
+      setUpcomingAppointments(upcoming);
+
+      // Mettre à jour les statistiques
+      setStats({
+        totalPatients: patients.length,
+        totalAppointmentsToday: todayAppointments.length,
+        upcomingAppointments: appointments.filter(
+          (apt) =>
+            new Date(apt.startTime) >= today &&
+            new Date(apt.startTime) <= nextWeek
+        ).length,
+        pendingMedicalRecords: 0, // Cette fonctionnalité n'est pas encore implémentée
+      });
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      setError("Erreur lors du chargement des données du tableau de bord");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-
-        // Dans un environnement réel, ces appels API seraient implémentés
-        // Pour l'instant, nous simulons les données
-
-        // Simuler un délai réseau
-        await new Promise((resolve) => setTimeout(resolve, 800));
-
-        // Données simulées pour les stats
-        setStats({
-          totalPatients: 248,
-          totalAppointmentsToday: 15,
-          upcomingAppointments: 43,
-          pendingMedicalRecords: 7,
-        });
-
-        // Données simulées pour les patients récents
-        setRecentPatients([
-          {
-            id: "1",
-            firstName: "Sophie",
-            lastName: "Martin",
-            dateOfBirth: "1985-06-15",
-            gender: "female",
-            email: "sophie.martin@example.com",
-            phone: "06 12 34 56 78",
-            createdAt: "2023-02-15T10:30:00Z",
-            updatedAt: "2023-02-15T10:30:00Z",
-          },
-          {
-            id: "2",
-            firstName: "Thomas",
-            lastName: "Dubois",
-            dateOfBirth: "1992-03-22",
-            gender: "male",
-            email: "thomas.dubois@example.com",
-            phone: "06 23 45 67 89",
-            createdAt: "2023-02-14T14:15:00Z",
-            updatedAt: "2023-02-14T14:15:00Z",
-          },
-          {
-            id: "3",
-            firstName: "Emma",
-            lastName: "Petit",
-            dateOfBirth: "1978-11-05",
-            gender: "female",
-            email: "emma.petit@example.com",
-            phone: "06 34 56 78 90",
-            createdAt: "2023-02-13T09:45:00Z",
-            updatedAt: "2023-02-13T09:45:00Z",
-          },
-        ]);
-
-        // Données simulées pour les rendez-vous à venir
-        setUpcomingAppointments([
-          {
-            id: "101",
-            patientName: "Sophie Martin",
-            startTime: "2023-02-18T10:00:00Z",
-            status: "confirmed",
-          },
-          {
-            id: "102",
-            patientName: "Thomas Dubois",
-            startTime: "2023-02-18T11:30:00Z",
-            status: "scheduled",
-          },
-          {
-            id: "103",
-            patientName: "Emma Petit",
-            startTime: "2023-02-19T14:15:00Z",
-            status: "confirmed",
-          },
-          {
-            id: "104",
-            patientName: "Lucas Bernard",
-            startTime: "2023-02-19T16:00:00Z",
-            status: "scheduled",
-          },
-        ]);
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDashboardData();
-  }, []);
+  }, [fetchDashboardData]);
 
   // Formatage de la date pour affichage
   const formatDate = (dateString: string) => {
@@ -141,31 +111,25 @@ const DashboardPage: React.FC = () => {
     }).format(date);
   };
 
+  // Calculer l'âge à partir de la date de naissance
+  const calculateAge = (dateOfBirth: string): number => {
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
+      age--;
+    }
+
+    return age;
+  };
+
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <svg
-          className="animate-spin h-8 w-8 text-primary-600"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          ></circle>
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          ></path>
-        </svg>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (
@@ -185,6 +149,10 @@ const DashboardPage: React.FC = () => {
         </div>
       </div>
 
+      {error && (
+        <Alert variant="error" message={error} onClose={() => setError(null)} />
+      )}
+
       {/* Statistiques */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="card">
@@ -196,7 +164,7 @@ const DashboardPage: React.FC = () => {
               {stats.totalPatients}
             </div>
             <div className="text-success-500 text-sm font-medium">
-              +5 cette semaine
+              {stats.totalPatients > 0 ? "+1 cette semaine" : ""}
             </div>
           </div>
         </div>
@@ -210,7 +178,7 @@ const DashboardPage: React.FC = () => {
               {stats.totalAppointmentsToday}
             </div>
             <div className="text-slate-500 text-sm font-medium">
-              3 à venir
+              {stats.totalAppointmentsToday > 0 ? "À venir aujourd'hui" : ""}
             </div>
           </div>
         </div>
@@ -236,7 +204,7 @@ const DashboardPage: React.FC = () => {
               {stats.pendingMedicalRecords}
             </div>
             <div className="text-warning-500 text-sm font-medium">
-              Action requise
+              {stats.pendingMedicalRecords > 0 ? "Action requise" : ""}
             </div>
           </div>
         </div>
@@ -257,82 +225,93 @@ const DashboardPage: React.FC = () => {
               Voir tous
             </Link>
           </div>
-          <div className="overflow-x-auto -mx-6 px-6">
-            <table className="min-w-full divide-y divide-neutral-200">
-              <thead>
-                <tr>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                    Nom
-                  </th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                    Date de naissance
-                  </th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                    Contact
-                  </th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-neutral-200">
-                {recentPatients.map((patient) => (
-                  <tr key={patient.id} className="hover:bg-slate-50">
-                    <td className="px-3 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700">
-                          {patient.firstName.charAt(0) +
-                            patient.lastName.charAt(0)}
-                        </div>
-                        <div className="ml-3">
-                          <div className="text-sm font-medium text-slate-900">
-                            {patient.firstName} {patient.lastName}
-                          </div>
-                          <div className="text-xs text-slate-500">
-                            {patient.gender === "male" ? "Homme" : "Femme"}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-3 py-4 whitespace-nowrap">
-                      <div className="text-sm text-slate-900">
-                        {new Date(patient.dateOfBirth).toLocaleDateString(
-                          "fr-FR"
-                        )}
-                      </div>
-                      <div className="text-xs text-slate-500">
-                        {new Date().getFullYear() -
-                          new Date(patient.dateOfBirth).getFullYear()}{" "}
-                        ans
-                      </div>
-                    </td>
-                    <td className="px-3 py-4 whitespace-nowrap">
-                      <div className="text-sm text-slate-900">
-                        {patient.email}
-                      </div>
-                      <div className="text-xs text-slate-500">
-                        {patient.phone}
-                      </div>
-                    </td>
-                    <td className="px-3 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <Link
-                        to={`/patients/${patient.id}`}
-                        className="text-primary-600 hover:text-primary-900 mr-3"
-                      >
-                        Détails
-                      </Link>
-                      <Link
-                        to={`/appointments/create?patientId=${patient.id}`}
-                        className="text-secondary-600 hover:text-secondary-900"
-                      >
-                        RDV
-                      </Link>
-                    </td>
+
+          {recentPatients.length === 0 ? (
+            <div className="text-center py-8 text-slate-500">
+              <p>Aucun patient enregistré</p>
+              <Link
+                to="/patients/create"
+                className="btn btn-primary mt-4 inline-block"
+              >
+                Ajouter un patient
+              </Link>
+            </div>
+          ) : (
+            <div className="overflow-x-auto -mx-6 px-6">
+              <table className="min-w-full divide-y divide-neutral-200">
+                <thead>
+                  <tr>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      Nom
+                    </th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      Date de naissance
+                    </th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      Contact
+                    </th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="bg-white divide-y divide-neutral-200">
+                  {recentPatients.map((patient) => (
+                    <tr key={patient.id} className="hover:bg-slate-50">
+                      <td className="px-3 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700">
+                            {patient.firstName.charAt(0) +
+                              patient.lastName.charAt(0)}
+                          </div>
+                          <div className="ml-3">
+                            <div className="text-sm font-medium text-slate-900">
+                              {patient.firstName} {patient.lastName}
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              {patient.gender === "male" ? "Homme" : "Femme"}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-3 py-4 whitespace-nowrap">
+                        <div className="text-sm text-slate-900">
+                          {new Date(patient.dateOfBirth).toLocaleDateString(
+                            "fr-FR"
+                          )}
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          {calculateAge(patient.dateOfBirth)} ans
+                        </div>
+                      </td>
+                      <td className="px-3 py-4 whitespace-nowrap">
+                        <div className="text-sm text-slate-900">
+                          {patient.email || "Non renseigné"}
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          {patient.phone || "Non renseigné"}
+                        </div>
+                      </td>
+                      <td className="px-3 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <Link
+                          to={`/patients/${patient.id}`}
+                          className="text-primary-600 hover:text-primary-900 mr-3"
+                        >
+                          Détails
+                        </Link>
+                        <Link
+                          to={`/appointments/create?patientId=${patient.id}`}
+                          className="text-secondary-600 hover:text-secondary-900"
+                        >
+                          RDV
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {/* Rendez-vous à venir */}
@@ -348,66 +327,93 @@ const DashboardPage: React.FC = () => {
               Voir tous
             </Link>
           </div>
-          <div className="space-y-4">
-            {upcomingAppointments.map((appointment) => (
-              <div
-                key={appointment.id}
-                className="flex p-3 border border-slate-100 rounded-lg hover:bg-slate-50"
+
+          {upcomingAppointments.length === 0 ? (
+            <div className="text-center py-8 text-slate-500">
+              <p>Aucun rendez-vous prévu</p>
+              <Link
+                to="/appointments/create"
+                className="btn btn-primary mt-4 inline-block"
               >
-                <div className="mr-4 flex-shrink-0">
-                  <div className="h-12 w-12 rounded-lg bg-primary-50 text-primary-700 flex items-center justify-center">
-                    <svg
-                      className="h-6 w-6"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
+                Planifier un rendez-vous
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {upcomingAppointments.map((appointment) => (
+                <div
+                  key={appointment.id}
+                  className="flex p-3 border border-slate-100 rounded-lg hover:bg-slate-50"
+                >
+                  <div className="mr-4 flex-shrink-0">
+                    <div className="h-12 w-12 rounded-lg bg-primary-50 text-primary-700 flex items-center justify-center">
+                      <svg
+                        className="h-6 w-6"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </div>
                   </div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start">
-                    <p className="text-sm font-medium text-slate-900 truncate">
-                      {appointment.patientName}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start">
+                      <p className="text-sm font-medium text-slate-900 truncate">
+                        Patient ID: {appointment.patientId}
+                      </p>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          appointment.status === "confirmed"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
+                      >
+                        {appointment.status === "confirmed"
+                          ? "Confirmé"
+                          : appointment.status === "scheduled"
+                          ? "Planifié"
+                          : appointment.status === "cancelled"
+                          ? "Annulé"
+                          : "Terminé"}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {formatDate(appointment.startTime)}
                     </p>
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        appointment.status === "confirmed"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}
-                    >
-                      {appointment.status === "confirmed"
-                        ? "Confirmé"
-                        : "Planifié"}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-slate-500">
-                    {formatDate(appointment.startTime)}
-                  </p>
-                  <div className="mt-2 flex">
-                    <Link
-                      to={`/appointments/${appointment.id}`}
-                      className="text-sm text-primary-600 hover:text-primary-700 mr-4"
-                    >
-                      Détails
-                    </Link>
-                    <button className="text-sm text-slate-500 hover:text-slate-700">
-                      Reprogrammer
-                    </button>
+                    <div className="mt-2 flex">
+                      <Link
+                        to={`/appointments/${appointment.id}`}
+                        className="text-sm text-primary-600 hover:text-primary-700 mr-4"
+                      >
+                        Détails
+                      </Link>
+                      <Link
+                        to={`/patients/${appointment.patientId}`}
+                        className="text-sm text-secondary-600 hover:text-secondary-700 mr-4"
+                      >
+                        Voir patient
+                      </Link>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
+      </div>
+
+      {/* Bouton pour rafraîchir les données */}
+      <div className="flex justify-center">
+        <button className="btn btn-outline" onClick={fetchDashboardData}>
+          Rafraîchir les données
+        </button>
       </div>
     </div>
   );
