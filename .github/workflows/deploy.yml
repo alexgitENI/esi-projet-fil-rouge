@@ -1,0 +1,24 @@
+# .github/workflows/deploy.yml
+name: Deploy to Development Machine
+
+on:
+  push:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted  # Au lieu de ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          
+      - name: Deploy application
+        run: |
+          # Ces commandes s'exécutent directement sur votre machine
+          git pull origin ${{ github.ref_name }}
+          docker-compose down
+          docker-compose build --no-cache
+          docker-compose up -d
+          echo "Deployment completed successfully!"
