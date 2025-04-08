@@ -1,4 +1,4 @@
-// src/api/apiClient.ts
+// medisecure-frontend/src/api/apiClient.ts
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
 import { API_URL } from "./endpoints";
 
@@ -9,7 +9,7 @@ class ApiClient {
   private constructor() {
     // S'assurer que l'URL de base se termine correctement pour éviter les doublons
     this.axiosInstance = axios.create({
-      baseURL: API_URL + "/api", // Utiliser uniquement un préfixe /api ici
+      baseURL: API_URL, // Retirer le "/api" ici pour éviter la duplication
       headers: {
         "Content-Type": "application/json",
       },
@@ -50,7 +50,7 @@ class ApiClient {
     this.axiosInstance.interceptors.response.use(
       (response) => {
         console.log(`Réponse de ${response.config.url}:`, response.data);
-        return response; // Ne pas modifier la réponse ici
+        return response.data; // Retourne directement les données pour simplifier l'utilisation
       },
       async (error: AxiosError) => {
         if (error.response) {
@@ -83,8 +83,7 @@ class ApiClient {
 
   public async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     try {
-      const response = await this.axiosInstance.get<T>(url, config);
-      return response.data; // Extraire les données de la réponse
+      return await this.axiosInstance.get<T>(url, config);
     } catch (error) {
       console.error(`Erreur GET ${url}:`, error);
       throw error;
@@ -97,8 +96,7 @@ class ApiClient {
     config?: AxiosRequestConfig
   ): Promise<T> {
     try {
-      const response = await this.axiosInstance.post<T>(url, data, config);
-      return response.data; // Extraire les données de la réponse
+      return await this.axiosInstance.post<T>(url, data, config);
     } catch (error) {
       console.error(`Erreur POST ${url}:`, error);
       throw error;
@@ -111,8 +109,7 @@ class ApiClient {
     config?: AxiosRequestConfig
   ): Promise<T> {
     try {
-      const response = await this.axiosInstance.put<T>(url, data, config);
-      return response.data; // Extraire les données de la réponse
+      return await this.axiosInstance.put<T>(url, data, config);
     } catch (error) {
       console.error(`Erreur PUT ${url}:`, error);
       throw error;
@@ -125,8 +122,7 @@ class ApiClient {
     config?: AxiosRequestConfig
   ): Promise<T> {
     try {
-      const response = await this.axiosInstance.patch<T>(url, data, config);
-      return response.data; // Extraire les données de la réponse
+      return await this.axiosInstance.patch<T>(url, data, config);
     } catch (error) {
       console.error(`Erreur PATCH ${url}:`, error);
       throw error;
@@ -135,8 +131,7 @@ class ApiClient {
 
   public async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     try {
-      const response = await this.axiosInstance.delete<T>(url, config);
-      return response.data; // Extraire les données de la réponse
+      return await this.axiosInstance.delete<T>(url, config);
     } catch (error) {
       console.error(`Erreur DELETE ${url}:`, error);
       throw error;
