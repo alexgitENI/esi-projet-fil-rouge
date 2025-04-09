@@ -7,13 +7,15 @@ class ApiClient {
   private axiosInstance: AxiosInstance;
 
   private constructor() {
-    // S'assurer que l'URL de base se termine correctement pour éviter les doublons
+    console.log("API URL:", API_URL); // Log pour déboguer l'URL
+
     this.axiosInstance = axios.create({
-      baseURL: API_URL, // Ne pas ajouter "/api" ici
+      baseURL: API_URL,
       headers: {
         "Content-Type": "application/json",
       },
-      timeout: 15000, // Timeout plus long pour les environnements de développement
+      timeout: 15000,
+      withCredentials: true, // Important pour les cookies d'authentification
     });
 
     this.setupInterceptors();
@@ -46,11 +48,11 @@ class ApiClient {
       }
     );
 
-    // Interceptor de réponse - gère les erreurs d'authentification et les logs
+    // Interceptor de réponse
     this.axiosInstance.interceptors.response.use(
       (response) => {
         console.log(`Réponse de ${response.config.url}:`, response.data);
-        return response.data; // Retourne directement les données pour simplifier l'utilisation
+        return response; // Retourner la réponse complète pour que les méthodes puissent accéder à .data
       },
       async (error: AxiosError) => {
         if (error.response) {
@@ -81,12 +83,10 @@ class ApiClient {
     );
   }
 
-  // Méthodes corrigées pour utiliser correctement l'instance Axios
-
   public async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     try {
       const response = await this.axiosInstance.get<T>(url, config);
-      return response.data; 
+      return response.data;
     } catch (error) {
       console.error(`Erreur GET ${url}:`, error);
       throw error;
@@ -100,7 +100,7 @@ class ApiClient {
   ): Promise<T> {
     try {
       const response = await this.axiosInstance.post<T>(url, data, config);
-      return response.data; 
+      return response.data;
     } catch (error) {
       console.error(`Erreur POST ${url}:`, error);
       throw error;
@@ -114,7 +114,7 @@ class ApiClient {
   ): Promise<T> {
     try {
       const response = await this.axiosInstance.put<T>(url, data, config);
-      return response.data; 
+      return response.data;
     } catch (error) {
       console.error(`Erreur PUT ${url}:`, error);
       throw error;
