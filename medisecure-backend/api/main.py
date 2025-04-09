@@ -1,4 +1,4 @@
-# medisecure-backend/api/main.py
+// medisecure-backend/api/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
@@ -42,7 +42,7 @@ except AttributeError:
 
 # Informations de version pour l'API
 API_VERSION = "1.0.0"
-API_PREFIX = os.getenv("API_PREFIX", "/api")
+API_PREFIX = "/api"  # Ne pas utiliser os.getenv ici, mais définir explicitement
 
 app = FastAPI(
     title="MediSecure API",
@@ -54,7 +54,7 @@ app = FastAPI(
 )
 
 # Configuration CORS
-origins = os.getenv("CORS_ORIGINS", "*").split(",")
+origins = ["*"]  # Autoriser toutes les origines en développement
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -73,8 +73,7 @@ app.add_exception_handler(AppException, app_exception_handler)
 app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
-# Modification importante: Appliquer le préfixe API à tous les routers
-# Ne pas inclure directement les routers sans préfixe
+# Inclure les routes avec le préfixe API
 app.include_router(patient_router, prefix=API_PREFIX)
 app.include_router(auth_router, prefix=API_PREFIX)
 app.include_router(appointment_router, prefix=API_PREFIX)
@@ -96,7 +95,7 @@ async def startup_event():
     logger.info(f"Environnement: {os.getenv('ENVIRONMENT', 'development')}")
     logger.info(f"Préfixe API: {API_PREFIX}")
     
-    # Ajouté pour déboguer: afficher toutes les routes
+    # Afficher toutes les routes pour débogage
     for route in app.routes:
         logger.info(f"Route: {route.path}, methods: {route.methods}")
 
