@@ -54,15 +54,13 @@ app = FastAPI(
 )
 
 # Configuration CORS
-origins = ["*"]  # Autoriser toutes les origines en développement
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
-    expose_headers=["*"],
-    max_age=600,  # Cache les préférences CORS pendant 10 minutes
+    expose_headers=["*"]
 )
 
 # Middleware d'authentification

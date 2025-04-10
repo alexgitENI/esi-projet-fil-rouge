@@ -324,6 +324,8 @@ async def delete_patient(
             detail=f"An unexpected error occurred: {str(e)}"
         )
 
+# ... existing code ...
+
 @router.get("/", response_model=PatientListResponseDTO)
 async def list_patients(
     skip: int = Query(0, description="Number of patients to skip"),
@@ -334,11 +336,28 @@ async def list_patients(
     """Liste tous les patients avec pagination."""
     try:
         # Vérification des permissions
-        user_role = token_payload.get("role")
-        if user_role not in ["admin", "doctor", "nurse", "receptionist"]:
+        user_role = token_payload.get("role", "").lower()  # Get role and convert to lowercase
+        allowed_roles = ["admin", "doctor", "nurse", "receptionist"]
+        
+        logger.debug(f"User role: {user_role}")  # Add debug logging
+        
+        if not user_role or user_role not in allowed_roles:
+            logger.warning(f"Unauthorized access attempt with role: {user_role}")
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You don't have permission to list patients"
+            )
+        
+        # Récupération des patients
+        patient_repository = container.patient_repository()
+        try:
+            patients = await patient_repository.list_all(skip, limit)
+            total = await patient_repository.count()
+        except Exception as e:
+            logger.error(f"Database error: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Database error occurred"
             )
         
         # Récupération des patients

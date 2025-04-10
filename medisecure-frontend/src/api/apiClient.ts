@@ -17,8 +17,8 @@ class ApiClient {
       timeout: 15000,
       withCredentials: true, // Important pour les cookies d'authentification
     });
-
     this.setupInterceptors();
+
   }
 
   public static getInstance(): ApiClient {

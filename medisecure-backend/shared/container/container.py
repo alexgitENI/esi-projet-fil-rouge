@@ -116,14 +116,16 @@ class Container(containers.DeclarativeContainer):
     
     # Configuration conditionnelle selon l'environnement
     def configure_for_environment(self):
-        """Configure les dépendances en fonction de l'environnement"""
-        env = self.config.environment()
+        """Configure le container pour l'environnement actuel"""
+        environment = os.getenv("ENVIRONMENT", "development")
         
-        if env == "test":
-            # Remplacer les repositories PostgreSQL par des repositories in-memory pour les tests
-            logger.info("Environnement de test détecté: utilisation des repositories in-memory")
-            self.user_repository.override(self.user_repository_in_memory)
-            self.patient_repository.override(self.patient_repository_in_memory)
-            self.appointment_repository.override(self.appointment_repository_in_memory)
+        if environment == "development":
+            # Use development configurations
+            self.user_repository = providers.Singleton(PostgresUserRepository)
+            self.patient_repository = providers.Singleton(PostgresPatientRepository)
+            self.appointment_repository = providers.Singleton(PostgresAppointmentRepository)
         else:
-            logger.info(f"Environnement {env}: utilisation des repositories PostgreSQL")
+            # Use production configurations
+            self.user_repository = providers.Singleton(PostgresUserRepository)
+            self.patient_repository = providers.Singleton(PostgresPatientRepository)
+            self.appointment_repository = providers.Singleton(PostgresAppointmentRepository)

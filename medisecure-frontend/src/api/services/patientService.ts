@@ -22,13 +22,22 @@ const adaptPatientCreateDto = (frontDto: PatientCreateDto): any => {
     last_name: frontDto.lastName,
     date_of_birth: frontDto.dateOfBirth,
     gender: frontDto.gender,
-    email: frontDto.email,
-    phone_number: frontDto.phone,
-    address: frontDto.address,
-    insurance_id: frontDto.insuranceNumber,
-    notes: frontDto.medicalHistory,
-    has_consent: true, // Par défaut, on suppose que le consentement est donné
+    email: frontDto.email || null, // Make sure email is null if not provided
+    phone_number: frontDto.phone || null,
+    address: frontDto.address || null,
+    city: null, // Add required fields even if null
+    postal_code: null,
+    country: null,
+    insurance_provider: null,
+    insurance_id: frontDto.insuranceNumber || null,
+    blood_type: null,
+    allergies: {},
+    chronic_diseases: {},
+    current_medications: {},
+    notes: frontDto.medicalHistory || null,
+    has_consent: true,
     gdpr_consent: true,
+    has_guardian_consent: false, // Add this field as required by backend
   };
 };
 
