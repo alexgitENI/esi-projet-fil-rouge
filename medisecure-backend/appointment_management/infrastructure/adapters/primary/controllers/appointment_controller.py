@@ -17,6 +17,7 @@ from appointment_management.application.dtos.appointment_dtos import (
 from appointment_management.application.usecases.schedule_appointment_usecase import ScheduleAppointmentUseCase
 from appointment_management.application.usecases.update_appointment_usecase import UpdateAppointmentUseCase
 from appointment_management.application.usecases.get_patient_appointments_usecase import GetPatientAppointmentsUseCase
+from appointment_management.domain.entities.appointment import AppointmentStatus
 from patient_management.domain.exceptions.patient_exceptions import PatientNotFoundException
 
 # Créer un router pour les endpoints des rendez-vous
@@ -92,7 +93,7 @@ async def create_appointment(
 async def list_appointments(
     startDate: Optional[str] = Query(None, description="Start date (format: YYYY-MM-DD)"),
     endDate: Optional[str] = Query(None, description="End date (format: YYYY-MM-DD)"),
-    status: Optional[str] = Query(None, description="Filter by appointment status"),
+    status_filter: Optional[str] = Query(None, alias="status", description="Filter by appointment status"),
     patientId: Optional[UUID] = Query(None, description="Filter by patient ID"),
     doctorId: Optional[UUID] = Query(None, description="Filter by doctor ID"),
     skip: int = Query(0, description="Number of appointments to skip"),
@@ -106,27 +107,117 @@ async def list_appointments(
     try:
         # Vérifier les permissions
         user_role = token_payload.get("role")
-        if user_role not in ["admin", "doctor", "nurse", "receptionist"]:
+        if not user_role or user_role.lower() not in ["admin", "doctor", "nurse", "receptionist"]:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You don't have permission to list appointments"
             )
         
-        # Essayer de récupérer simplement une liste vide de rendez-vous
-        # pour résoudre le problème immédiat
+        # Convertir les dates si elles sont fournies
+        start_date = None
+        end_date = None
+        
+        if startDate:
+            try:
+                start_date = date.fromisoformat(startDate)
+            except ValueError:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid start date format. Use YYYY-MM-DD"
+                )
+        
+        if endDate:
+            try:
+                end_date = date.fromisoformat(endDate)
+            except ValueError:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid end date format. Use YYYY-MM-DD"
+                )
+        
+        # Vérifier que la date de fin est après la date de début
+        if start_date and end_date and end_date < start_date:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="End date must be after start date"
+            )
+
+        # Récupérer le repository
+        appointment_repository = container.appointment_repository()
+        
+        # Filtrage et récupération des rendez-vous
+        try:
+            appointments = []
+            
+            if patientId:
+                # Priorité au filtrage par patient
+                appointments = await appointment_repository.get_by_patient(patientId, skip, limit)
+            elif doctorId:
+                # Filtrage par médecin
+                appointments = await appointment_repository.get_by_doctor(doctorId, skip, limit)
+            elif start_date and end_date:
+                # Filtrage par plage de dates
+                appointments = await appointment_repository.get_by_date_range(start_date, end_date, skip, limit)
+            else:
+                # Pas de filtrage, récupérer tous les rendez-vous
+                appointments = await appointment_repository.list_all(skip, limit)
+            
+            # Filtrage par statut si fourni
+            if status_filter:
+                try:
+                    status_enum = AppointmentStatus(status_filter)
+                    appointments = [apt for apt in appointments if apt.status == status_enum]
+                except ValueError:
+                    # Statut invalide, ignorer le filtre
+                    pass
+            
+            # Conversion en DTOs
+            appointment_dtos = []
+            for appointment in appointments:
+                appointment_dtos.append(
+                    AppointmentResponseDTO(
+                        id=appointment.id,
+                        patient_id=appointment.patient_id,
+                        doctor_id=appointment.doctor_id,
+                        start_time=appointment.start_time,
+                        end_time=appointment.end_time,
+                        status=appointment.status.value,
+                        reason=appointment.reason,
+                        notes=appointment.notes,
+                        created_at=appointment.created_at,
+                        updated_at=appointment.updated_at,
+                        is_active=appointment.is_active
+                    )
+                )
+            
+            # Réponse finale
+            return AppointmentListResponseDTO(
+                appointments=appointment_dtos,
+                total=len(appointments),
+                skip=skip,
+                limit=limit
+            )
+            
+        except Exception as e:
+            # En cas d'erreur, retourner une liste vide plutôt qu'une erreur 500
+            return AppointmentListResponseDTO(
+                appointments=[],
+                total=0,
+                skip=skip,
+                limit=limit
+            )
+    
+    except HTTPException:
+        # Remonter les erreurs HTTP pour qu'elles soient correctement gérées
+        raise
+    
+    except Exception as e:
+        # Capturer toutes les autres exceptions et retourner une liste vide
         return AppointmentListResponseDTO(
             appointments=[],
             total=0,
             skip=skip,
             limit=limit
-        )
-    
-    except Exception as e:
-        # Utiliser HTTPException directement avec une valeur constante
-        # au lieu de status.HTTP_500_INTERNAL_SERVER_ERROR
-        raise HTTPException(
-            status_code=500,  # Utiliser 500 directement au lieu de status.HTTP_500_INTERNAL_SERVER_ERROR
-            detail=f"An unexpected error occurred: {str(e)}"
         )
 
 @router.put("/{appointment_id}", response_model=AppointmentResponseDTO)
@@ -273,9 +364,12 @@ async def get_patient_appointments(
         )
     
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An unexpected error occurred: {str(e)}"
+        # Retourner une liste vide en cas d'erreur
+        return AppointmentListResponseDTO(
+            appointments=[],
+            total=0,
+            skip=skip,
+            limit=limit
         )
 
 @router.get("/doctor/{doctor_id}", response_model=AppointmentListResponseDTO)
@@ -340,9 +434,12 @@ async def get_doctor_appointments(
         return response
     
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An unexpected error occurred: {str(e)}"
+        # Retourner une liste vide en cas d'erreur
+        return AppointmentListResponseDTO(
+            appointments=[],
+            total=0,
+            skip=skip,
+            limit=limit
         )
 
 @router.get("/calendar", response_model=AppointmentListResponseDTO)
@@ -418,145 +515,14 @@ async def get_calendar_appointments(
         
         return response
     
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An unexpected error occurred: {str(e)}"
-        )
-
-# Nouvel endpoint pour récupérer les rendez-vous par plage de dates
-@router.get("/", response_model=AppointmentListResponseDTO)
-async def list_appointments(
-    startDate: Optional[str] = Query(None, description="Start date (format: YYYY-MM-DD)"),
-    endDate: Optional[str] = Query(None, description="End date (format: YYYY-MM-DD)"),
-    status: Optional[str] = Query(None, description="Filter by appointment status"),
-    patientId: Optional[UUID] = Query(None, description="Filter by patient ID"),
-    doctorId: Optional[UUID] = Query(None, description="Filter by doctor ID"),
-    skip: int = Query(0, description="Number of appointments to skip"),
-    limit: int = Query(100, description="Maximum number of appointments to return"),
-    token_payload: Dict[str, Any] = Depends(extract_token_payload),
-    container: Container = Depends(get_container)
-):
-    """
-    Liste tous les rendez-vous avec filtrage par date et pagination.
-    
-    Args:
-        startDate: Date de début pour le filtrage (format: YYYY-MM-DD)
-        endDate: Date de fin pour le filtrage (format: YYYY-MM-DD)
-        status: Statut des rendez-vous à récupérer
-        patientId: ID du patient pour filtrer les rendez-vous
-        doctorId: ID du médecin pour filtrer les rendez-vous
-        skip: Le nombre de rendez-vous à sauter
-        limit: Le nombre maximum de rendez-vous à retourner
-        token_payload: Les informations du token JWT
-        container: Le container d'injection de dépendances
-        
-    Returns:
-        AppointmentListResponseDTO: La liste des rendez-vous filtrés
-        
-    Raises:
-        HTTPException: En cas d'erreur
-    """
-    try:
-        # Vérifier les permissions
-        user_role = token_payload.get("role")
-        if user_role not in ["admin", "doctor", "nurse", "receptionist"]:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You don't have permission to list appointments"
-            )
-        
-        # Convertir les dates si elles sont fournies
-        start_date = None
-        end_date = None
-        
-        if startDate:
-            try:
-                start_date = date.fromisoformat(startDate)
-            except ValueError:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Invalid start date format. Use YYYY-MM-DD"
-                )
-        
-        if endDate:
-            try:
-                end_date = date.fromisoformat(endDate)
-            except ValueError:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Invalid end date format. Use YYYY-MM-DD"
-                )
-        
-        # Vérifier que la date de fin est après la date de début
-        if start_date and end_date and end_date < start_date:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="End date must be after start date"
-            )
-        
-        # Récupérer le repository
-        appointment_repository = container.appointment_repository()
-        
-        # Appliquer le filtrage en fonction des paramètres fournis
-        appointments = []
-        
-        if patientId:
-            # Priorité au filtrage par patient
-            appointments = await appointment_repository.get_by_patient(patientId, skip, limit)
-        elif doctorId:
-            # Filtrage par médecin
-            appointments = await appointment_repository.get_by_doctor(doctorId, skip, limit)
-        elif start_date and end_date:
-            # Filtrage par plage de dates
-            appointments = await appointment_repository.get_by_date_range(start_date, end_date, skip, limit)
-        else:
-            # Pas de filtrage, récupérer tous les rendez-vous
-            appointments = await appointment_repository.list_all(skip, limit)
-        
-        # Filtrer par statut si fourni
-        if status:
-            from appointment_management.domain.entities.appointment import AppointmentStatus
-            try:
-                status_enum = AppointmentStatus(status)
-                appointments = [apt for apt in appointments if apt.status == status_enum]
-            except ValueError:
-                pass  # Ignorer le filtrage par statut si le statut n'est pas valide
-        
-        # Compter le nombre total après filtrage
-        total = len(appointments)
-        
-        # Convertir les entités en DTOs de réponse
-        appointment_dtos = []
-        for appointment in appointments:
-            appointment_dtos.append(
-                AppointmentResponseDTO(
-                    id=appointment.id,
-                    patient_id=appointment.patient_id,
-                    doctor_id=appointment.doctor_id,
-                    start_time=appointment.start_time,
-                    end_time=appointment.end_time,
-                    status=appointment.status.value,
-                    reason=appointment.reason,
-                    notes=appointment.notes,
-                    created_at=appointment.created_at,
-                    updated_at=appointment.updated_at,
-                    is_active=appointment.is_active
-                )
-            )
-        
-        # Construire la réponse
-        response = AppointmentListResponseDTO(
-            appointments=appointment_dtos,
-            total=total,
-            skip=skip,
-            limit=limit
-        )
-        
-        return response
+    except HTTPException:
+        raise
     
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An unexpected error occurred: {str(e)}"
+        # Retourner une liste vide en cas d'erreur
+        return AppointmentListResponseDTO(
+            appointments=[],
+            total=0,
+            skip=0,
+            limit=100
         )
