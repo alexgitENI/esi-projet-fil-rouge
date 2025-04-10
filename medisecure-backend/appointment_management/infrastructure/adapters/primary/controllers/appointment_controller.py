@@ -1,3 +1,5 @@
+# medisecure-backend/appointment_management/infrastructure/adapters/primary/controllers/appointment_controller.py
+
 from typing import Optional, List, Dict, Any
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, Path, status
@@ -422,6 +424,143 @@ async def get_calendar_appointments(
             total=total,
             skip=0,
             limit=total
+        )
+        
+        return response
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An unexpected error occurred: {str(e)}"
+        )
+
+# Nouvel endpoint pour récupérer les rendez-vous par plage de dates
+@router.get("/", response_model=AppointmentListResponseDTO)
+async def list_appointments(
+    startDate: Optional[str] = Query(None, description="Start date (format: YYYY-MM-DD)"),
+    endDate: Optional[str] = Query(None, description="End date (format: YYYY-MM-DD)"),
+    status: Optional[str] = Query(None, description="Filter by appointment status"),
+    patientId: Optional[UUID] = Query(None, description="Filter by patient ID"),
+    doctorId: Optional[UUID] = Query(None, description="Filter by doctor ID"),
+    skip: int = Query(0, description="Number of appointments to skip"),
+    limit: int = Query(100, description="Maximum number of appointments to return"),
+    token_payload: Dict[str, Any] = Depends(extract_token_payload),
+    container: Container = Depends(get_container)
+):
+    """
+    Liste tous les rendez-vous avec filtrage par date et pagination.
+    
+    Args:
+        startDate: Date de début pour le filtrage (format: YYYY-MM-DD)
+        endDate: Date de fin pour le filtrage (format: YYYY-MM-DD)
+        status: Statut des rendez-vous à récupérer
+        patientId: ID du patient pour filtrer les rendez-vous
+        doctorId: ID du médecin pour filtrer les rendez-vous
+        skip: Le nombre de rendez-vous à sauter
+        limit: Le nombre maximum de rendez-vous à retourner
+        token_payload: Les informations du token JWT
+        container: Le container d'injection de dépendances
+        
+    Returns:
+        AppointmentListResponseDTO: La liste des rendez-vous filtrés
+        
+    Raises:
+        HTTPException: En cas d'erreur
+    """
+    try:
+        # Vérifier les permissions
+        user_role = token_payload.get("role")
+        if user_role not in ["admin", "doctor", "nurse", "receptionist"]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have permission to list appointments"
+            )
+        
+        # Convertir les dates si elles sont fournies
+        start_date = None
+        end_date = None
+        
+        if startDate:
+            try:
+                start_date = date.fromisoformat(startDate)
+            except ValueError:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid start date format. Use YYYY-MM-DD"
+                )
+        
+        if endDate:
+            try:
+                end_date = date.fromisoformat(endDate)
+            except ValueError:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid end date format. Use YYYY-MM-DD"
+                )
+        
+        # Vérifier que la date de fin est après la date de début
+        if start_date and end_date and end_date < start_date:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="End date must be after start date"
+            )
+        
+        # Récupérer le repository
+        appointment_repository = container.appointment_repository()
+        
+        # Appliquer le filtrage en fonction des paramètres fournis
+        appointments = []
+        
+        if patientId:
+            # Priorité au filtrage par patient
+            appointments = await appointment_repository.get_by_patient(patientId, skip, limit)
+        elif doctorId:
+            # Filtrage par médecin
+            appointments = await appointment_repository.get_by_doctor(doctorId, skip, limit)
+        elif start_date and end_date:
+            # Filtrage par plage de dates
+            appointments = await appointment_repository.get_by_date_range(start_date, end_date, skip, limit)
+        else:
+            # Pas de filtrage, récupérer tous les rendez-vous
+            appointments = await appointment_repository.list_all(skip, limit)
+        
+        # Filtrer par statut si fourni
+        if status:
+            from appointment_management.domain.entities.appointment import AppointmentStatus
+            try:
+                status_enum = AppointmentStatus(status)
+                appointments = [apt for apt in appointments if apt.status == status_enum]
+            except ValueError:
+                pass  # Ignorer le filtrage par statut si le statut n'est pas valide
+        
+        # Compter le nombre total après filtrage
+        total = len(appointments)
+        
+        # Convertir les entités en DTOs de réponse
+        appointment_dtos = []
+        for appointment in appointments:
+            appointment_dtos.append(
+                AppointmentResponseDTO(
+                    id=appointment.id,
+                    patient_id=appointment.patient_id,
+                    doctor_id=appointment.doctor_id,
+                    start_time=appointment.start_time,
+                    end_time=appointment.end_time,
+                    status=appointment.status.value,
+                    reason=appointment.reason,
+                    notes=appointment.notes,
+                    created_at=appointment.created_at,
+                    updated_at=appointment.updated_at,
+                    is_active=appointment.is_active
+                )
+            )
+        
+        # Construire la réponse
+        response = AppointmentListResponseDTO(
+            appointments=appointment_dtos,
+            total=total,
+            skip=skip,
+            limit=limit
         )
         
         return response

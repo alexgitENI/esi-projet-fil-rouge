@@ -94,22 +94,22 @@ const appointmentService = {
   getAllAppointments: async (
     filter?: AppointmentFilter
   ): Promise<Appointment[]> => {
-    let url = ENDPOINTS.APPOINTMENTS.BASE;
-
-    if (filter) {
-      const params = new URLSearchParams();
-
-      if (filter.patientId) params.append("patientId", filter.patientId);
-      if (filter.doctorId) params.append("doctorId", filter.doctorId);
-      if (filter.date) params.append("date", filter.date);
-      if (filter.status) params.append("status", filter.status);
-      if (filter.startDate) params.append("startDate", filter.startDate);
-      if (filter.endDate) params.append("endDate", filter.endDate);
-
-      url += `?${params.toString()}`;
-    }
-
     try {
+      // On utilise une approche différente pour construire l'URL avec les paramètres
+      let queryParams = new URLSearchParams();
+
+      if (filter) {
+        if (filter.patientId) queryParams.append("patientId", filter.patientId);
+        if (filter.doctorId) queryParams.append("doctorId", filter.doctorId);
+        if (filter.date) queryParams.append("date", filter.date);
+        if (filter.status) queryParams.append("status", filter.status);
+        if (filter.startDate) queryParams.append("startDate", filter.startDate);
+        if (filter.endDate) queryParams.append("endDate", filter.endDate);
+      }
+
+      const url = `${ENDPOINTS.APPOINTMENTS.BASE}?${queryParams.toString()}`;
+      console.log("Fetching appointments with URL:", url);
+
       const response = await apiClient.get<AppointmentListResponse>(url);
       console.log("API Response for appointments:", response);
       return response.appointments.map(adaptAppointmentFromApi);
@@ -169,9 +169,18 @@ const appointmentService = {
     month: number
   ): Promise<Appointment[]> => {
     try {
-      const response = await apiClient.get<AppointmentListResponse>(
-        `${ENDPOINTS.APPOINTMENTS.CALENDAR}?year=${year}&month=${month}`
-      );
+      // Utilisation du format de requête avec paramètres pour éviter les erreurs 405
+      const queryParams = new URLSearchParams({
+        year: year.toString(),
+        month: month.toString(),
+      });
+
+      const url = `${
+        ENDPOINTS.APPOINTMENTS.CALENDAR
+      }?${queryParams.toString()}`;
+      console.log("Fetching calendar with URL:", url);
+
+      const response = await apiClient.get<AppointmentListResponse>(url);
       return response.appointments.map(adaptAppointmentFromApi);
     } catch (error) {
       console.error(`Error fetching calendar for ${year}/${month}:`, error);
