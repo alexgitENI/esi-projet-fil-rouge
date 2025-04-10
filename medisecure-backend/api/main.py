@@ -53,12 +53,12 @@ app = FastAPI(
     openapi_url=f"{API_PREFIX}/openapi.json",
 )
 
-# Configuration CORS
+# Configuration CORS - Modification pour accepter les requêtes du frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:5173"],  # Assurez-vous que c'est bien l'origine de votre frontend
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],  # Ajout de toutes les méthodes
     allow_headers=["*"],
     expose_headers=["*"]
 )
