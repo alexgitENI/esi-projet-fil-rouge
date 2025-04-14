@@ -59,14 +59,48 @@ const adaptAppointmentFromApi = (backDto: any): Appointment => {
 
 // Fonction pour adapter les DTO de création du front vers le back
 const adaptAppointmentCreateDto = (frontDto: AppointmentCreateDto): any => {
-  return {
-    patient_id: frontDto.patientId,
-    doctor_id: frontDto.doctorId,
-    start_time: frontDto.startTime,
-    end_time: frontDto.endTime,
-    reason: frontDto.reason,
-    notes: frontDto.notes,
-  };
+  try {
+    console.log("Adaptation des données du rendez-vous:", frontDto);
+
+    // Vérifier que startTime et endTime sont des chaînes valides
+    if (!frontDto.startTime || !frontDto.endTime) {
+      throw new Error("Les heures de début et de fin sont requises");
+    }
+
+    // Si startTime et endTime sont déjà au format ISO, les utiliser directement
+    // Sinon, essayer de convertir en objets Date puis en chaînes ISO
+    let startTime: string = frontDto.startTime;
+    let endTime: string = frontDto.endTime;
+
+    // Vérifier si nous devons convertir les formats de date
+    if (!startTime.includes("T") || !endTime.includes("T")) {
+      // Si ce ne sont pas déjà des dates ISO complètes, essayer de les convertir
+      try {
+        const startDate = new Date(startTime);
+        const endDate = new Date(endTime);
+
+        if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+          startTime = startDate.toISOString();
+          endTime = endDate.toISOString();
+        }
+      } catch (e) {
+        console.error("Erreur de conversion de date:", e);
+        // Continuer avec les valeurs originales si la conversion échoue
+      }
+    }
+
+    return {
+      patient_id: frontDto.patientId,
+      doctor_id: frontDto.doctorId,
+      start_time: startTime,
+      end_time: endTime,
+      reason: frontDto.reason || "Consultation",
+      notes: frontDto.notes,
+    };
+  } catch (error) {
+    console.error("Erreur lors de l'adaptation des données:", error);
+    throw error;
+  }
 };
 
 // Fonction pour adapter les DTO de mise à jour
