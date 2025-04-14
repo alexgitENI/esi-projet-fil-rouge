@@ -1,3 +1,4 @@
+# medisecure-backend/patient_management/application/dtos/patient_dtos.py
 from typing import Optional, Dict, Any, List
 from pydantic import BaseModel, EmailStr, Field, validator
 from datetime import date, datetime
@@ -24,8 +25,8 @@ class PatientCreateDTO(BaseModel):
     current_medications: Optional[Dict[str, Any]] = None
     
     # Informations de consentement
-    has_consent: bool = False
-    gdpr_consent: bool = False
+    has_consent: bool = True  # Changé de False à True par défaut
+    gdpr_consent: bool = True  # Changé de False à True par défaut
     has_guardian_consent: bool = False  # Pour les mineurs
     
     # Informations administratives

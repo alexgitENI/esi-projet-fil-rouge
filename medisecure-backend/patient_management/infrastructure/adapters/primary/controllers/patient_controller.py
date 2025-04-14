@@ -81,8 +81,10 @@ async def create_patient(
     """
     try:
         # Vérifier si l'utilisateur a le droit de créer un patient
-        user_role = token_payload.get("role")
-        if user_role not in ["admin", "doctor", "nurse", "receptionist"]:
+        user_role = token_payload.get("role", "").lower()  # Conversion en minuscules
+        allowed_roles = ["admin", "doctor", "nurse", "receptionist"]
+        
+        if not check_role_permission(user_role, allowed_roles):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You don't have permission to create patient folders"
@@ -99,10 +101,13 @@ async def create_patient(
         )
         
         # Exécuter le cas d'utilisation
-        result = await use_case.execute(data)
-        
-        logger.info(f"Patient créé avec succès: {result.id}")
-        return result
+        try:
+            result = await use_case.execute(data)
+            logger.info(f"Patient créé avec succès: {result.id}")
+            return result
+        except Exception as e:
+            logger.error(f"Erreur pendant l'exécution du cas d'utilisation: {str(e)}")
+            raise
     
     except PatientAlreadyExistsException as e:
         logger.error(f"Patient déjà existant: {str(e)}")
@@ -323,8 +328,6 @@ async def delete_patient(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An unexpected error occurred: {str(e)}"
         )
-
-# ... existing code ...
 
 @router.get("/", response_model=PatientListResponseDTO)
 async def list_patients(

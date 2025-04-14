@@ -22,22 +22,24 @@ const adaptPatientCreateDto = (frontDto: PatientCreateDto): any => {
     last_name: frontDto.lastName,
     date_of_birth: frontDto.dateOfBirth,
     gender: frontDto.gender,
-    email: frontDto.email || null, // Make sure email is null if not provided
+    email: frontDto.email || null,
     phone_number: frontDto.phone || null,
     address: frontDto.address || null,
-    city: null, // Add required fields even if null
+    insurance_id: frontDto.insuranceNumber || null,
+    notes: frontDto.medicalHistory || null,
+
+    // Ajout des champs obligatoires manquants
+    city: null,
     postal_code: null,
     country: null,
-    insurance_provider: null,
-    insurance_id: frontDto.insuranceNumber || null,
     blood_type: null,
     allergies: {},
     chronic_diseases: {},
     current_medications: {},
-    notes: frontDto.medicalHistory || null,
     has_consent: true,
     gdpr_consent: true,
-    has_guardian_consent: false, // Add this field as required by backend
+    has_guardian_consent: false,
+    insurance_provider: null,
   };
 };
 
