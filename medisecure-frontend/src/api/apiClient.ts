@@ -1,5 +1,9 @@
 // medisecure-frontend/src/api/apiClient.ts
-import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
+import axios, {
+  AxiosError,
+  AxiosInstance,
+  AxiosRequestConfig
+} from "axios";
 import { API_URL } from "./endpoints";
 
 class ApiClient {
@@ -7,18 +11,17 @@ class ApiClient {
   private axiosInstance: AxiosInstance;
 
   private constructor() {
-    console.log("API URL:", API_URL); // Log pour déboguer l'URL
+    console.log("API URL:", API_URL);
 
     this.axiosInstance = axios.create({
       baseURL: API_URL,
       headers: {
         "Content-Type": "application/json",
       },
-      timeout: 15000,
-      withCredentials: true, // Important pour les cookies d'authentification
+      timeout: 30000,
+      withCredentials: true,
     });
     this.setupInterceptors();
-
   }
 
   public static getInstance(): ApiClient {
@@ -29,7 +32,6 @@ class ApiClient {
   }
 
   private setupInterceptors(): void {
-    // Interceptor de requête - ajoute le token d'authentification
     this.axiosInstance.interceptors.request.use(
       (config) => {
         const token = localStorage.getItem("access_token");
@@ -48,11 +50,10 @@ class ApiClient {
       }
     );
 
-    // Interceptor de réponse
     this.axiosInstance.interceptors.response.use(
       (response) => {
         console.log(`Réponse de ${response.config.url}:`, response.data);
-        return response; // Retourner la réponse complète pour que les méthodes puissent accéder à .data
+        return response.data; // Retourne directement response.data
       },
       async (error: AxiosError) => {
         if (error.response) {
@@ -61,7 +62,6 @@ class ApiClient {
             error.response.data
           );
 
-          // Si l'erreur est 401 (non autorisé), déconnexion
           if (
             error.response.status === 401 &&
             !error.config?.url?.includes("login")
@@ -70,11 +70,12 @@ class ApiClient {
             localStorage.removeItem("access_token");
             localStorage.removeItem("user");
 
-            // Vérifier si nous sommes déjà sur la page de login pour éviter une boucle de redirections
             if (!window.location.pathname.includes("login")) {
               window.location.href = "/login";
             }
           }
+        } else if (error.code === "ECONNABORTED") {
+          console.error("Timeout de la requête:", error.message);
         } else {
           console.error("Erreur réseau:", error.message);
         }
@@ -85,8 +86,8 @@ class ApiClient {
 
   public async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     try {
-      const response = await this.axiosInstance.get<T>(url, config);
-      return response.data;
+      const response = await this.axiosInstance.get<any, T>(url, config);
+      return response;
     } catch (error) {
       console.error(`Erreur GET ${url}:`, error);
       throw error;
@@ -99,8 +100,8 @@ class ApiClient {
     config?: AxiosRequestConfig
   ): Promise<T> {
     try {
-      const response = await this.axiosInstance.post<T>(url, data, config);
-      return response.data;
+      const response = await this.axiosInstance.post<any, T>(url, data, config);
+      return response;
     } catch (error) {
       console.error(`Erreur POST ${url}:`, error);
       throw error;
@@ -113,8 +114,8 @@ class ApiClient {
     config?: AxiosRequestConfig
   ): Promise<T> {
     try {
-      const response = await this.axiosInstance.put<T>(url, data, config);
-      return response.data;
+      const response = await this.axiosInstance.put<any, T>(url, data, config);
+      return response;
     } catch (error) {
       console.error(`Erreur PUT ${url}:`, error);
       throw error;
@@ -127,8 +128,12 @@ class ApiClient {
     config?: AxiosRequestConfig
   ): Promise<T> {
     try {
-      const response = await this.axiosInstance.patch<T>(url, data, config);
-      return response.data;
+      const response = await this.axiosInstance.patch<any, T>(
+        url,
+        data,
+        config
+      );
+      return response;
     } catch (error) {
       console.error(`Erreur PATCH ${url}:`, error);
       throw error;
@@ -137,8 +142,8 @@ class ApiClient {
 
   public async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     try {
-      const response = await this.axiosInstance.delete<T>(url, config);
-      return response.data;
+      const response = await this.axiosInstance.delete<any, T>(url, config);
+      return response;
     } catch (error) {
       console.error(`Erreur DELETE ${url}:`, error);
       throw error;
