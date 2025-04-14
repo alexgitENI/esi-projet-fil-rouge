@@ -50,57 +50,68 @@ class ScheduleAppointmentUseCase:
             PatientNotFoundException: Si le patient n'est pas trouvé
             ValueError: Si les heures de début et de fin sont invalides
         """
-        # Valider les heures de début et de fin
-        self.appointment_service.validate_appointment_times(data.start_time, data.end_time)
+        try:
+        # Ajouter des logs pour les données reçues
+            logging.info(f"Données de rendez-vous reçues: {data}")
+            logging.info(f"Types des données: patient_id: {type(data.patient_id)}, doctor_id: {type(data.doctor_id)}")
+            logging.info(f"Types des dates: start_time: {type(data.start_time)}, end_time: {type(data.end_time)}")
         
-        # Vérifier si le patient existe
-        patient = await self.patient_repository.get_by_id(data.patient_id)
-        if not patient:
-            raise PatientNotFoundException(data.patient_id)
-        
-        # Vérifier si le créneau est disponible (aucun chevauchement)
-        existing_appointments = await self.appointment_repository.get_by_doctor(
-            data.doctor_id, 
-            skip=0, 
-            limit=1000
-        )
-        
-        if self.appointment_service.check_appointment_overlap(
-            existing_appointments, 
-            data.start_time, 
-            data.end_time
-        ):
-            raise ValueError("Ce créneau horaire est déjà occupé par un autre rendez-vous")
-        
-        # Générer un ID pour le rendez-vous
-        appointment_id = self.id_generator.generate_id()
-        
-        # Créer l'entité Appointment
-        appointment = Appointment(
-            id=appointment_id,
-            patient_id=data.patient_id,
-            doctor_id=data.doctor_id,
-            start_time=data.start_time,
-            end_time=data.end_time,
-            status=AppointmentStatus.SCHEDULED,
-            reason=data.reason,
-            notes=data.notes
-        )
-        
-        # Sauvegarder le rendez-vous
-        created_appointment = await self.appointment_repository.create(appointment)
-        
-        # Convertir l'entité en DTO de réponse
-        return AppointmentResponseDTO(
-            id=created_appointment.id,
-            patient_id=created_appointment.patient_id,
-            doctor_id=created_appointment.doctor_id,
-            start_time=created_appointment.start_time,
-            end_time=created_appointment.end_time,
-            status=created_appointment.status.value,
-            reason=created_appointment.reason,
-            notes=created_appointment.notes,
-            created_at=created_appointment.created_at,
-            updated_at=created_appointment.updated_at,
-            is_active=created_appointment.is_active
-        )
+            # Valider les heures de début et de fin
+            self.appointment_service.validate_appointment_times(data.start_time, data.end_time)
+            
+            # Vérifier si le patient existe
+            patient = await self.patient_repository.get_by_id(data.patient_id)
+            if not patient:
+                logging.error(f"Patient avec ID {data.patient_id} non trouvé")
+                raise PatientNotFoundException(data.patient_id)
+          
+          
+            # Vérifier si le créneau est disponible (aucun chevauchement)
+            existing_appointments = await self.appointment_repository.get_by_doctor(
+                data.doctor_id, 
+                skip=0, 
+                limit=1000
+            )
+            
+            if self.appointment_service.check_appointment_overlap(
+                existing_appointments, 
+                data.start_time, 
+                data.end_time
+            ):
+                raise ValueError("Ce créneau horaire est déjà occupé par un autre rendez-vous")
+            
+            # Générer un ID pour le rendez-vous
+            appointment_id = self.id_generator.generate_id()
+            
+            # Créer l'entité Appointment
+            appointment = Appointment(
+                id=appointment_id,
+                patient_id=data.patient_id,
+                doctor_id=data.doctor_id,
+                start_time=data.start_time,
+                end_time=data.end_time,
+                status=AppointmentStatus.SCHEDULED,
+                reason=data.reason,
+                notes=data.notes
+            )
+            
+            # Sauvegarder le rendez-vous
+            created_appointment = await self.appointment_repository.create(appointment)
+            
+            # Convertir l'entité en DTO de réponse
+            return AppointmentResponseDTO(
+                id=created_appointment.id,
+                patient_id=created_appointment.patient_id,
+                doctor_id=created_appointment.doctor_id,
+                start_time=created_appointment.start_time,
+                end_time=created_appointment.end_time,
+                status=created_appointment.status.value,
+                reason=created_appointment.reason,
+                notes=created_appointment.notes,
+                created_at=created_appointment.created_at,
+                updated_at=created_appointment.updated_at,
+                is_active=created_appointment.is_active
+            )
+        finally:
+            # Ajouter des logs pour indiquer que le cas d'utilisation a terminé
+            logging.info("Fin du cas d'utilisation de planification de rendez-vous")

@@ -37,19 +37,11 @@ async def create_appointment(
 ):
     """
     Crée un nouveau rendez-vous.
-    
-    Args:
-        data: Les données pour la création du rendez-vous
-        token_payload: Les informations du token JWT
-        container: Le container d'injection de dépendances
-        
-    Returns:
-        AppointmentResponseDTO: Le rendez-vous créé
-        
-    Raises:
-        HTTPException: En cas d'erreur
     """
     try:
+        # Journaliser les données reçues
+        logger.info(f"Données reçues pour la création d'un rendez-vous: {data}")
+        
         # Vérifier si l'utilisateur a le droit de créer un rendez-vous
         user_role = token_payload.get("role")
         if user_role not in ["admin", "doctor", "nurse", "receptionist"]:
@@ -67,23 +59,31 @@ async def create_appointment(
         )
         
         # Exécuter le cas d'utilisation
-        result = await use_case.execute(data)
-        
-        return result
+        try:
+            logger.info("Tentative d'exécution du cas d'utilisation ScheduleAppointmentUseCase")
+            result = await use_case.execute(data)
+            logger.info(f"Rendez-vous créé avec succès: {result.id}")
+            return result
+        except Exception as e:
+            logger.exception(f"Erreur pendant l'exécution du cas d'utilisation: {str(e)}")
+            raise
     
     except PatientNotFoundException as e:
+        logger.error(f"Patient non trouvé: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e)
         )
     
     except ValueError as e:
+        logger.error(f"Erreur de validation: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
     
     except Exception as e:
+        logger.exception(f"Erreur inattendue lors de la création du rendez-vous: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An unexpected error occurred: {str(e)}"
