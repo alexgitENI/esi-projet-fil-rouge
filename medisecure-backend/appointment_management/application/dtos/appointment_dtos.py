@@ -1,3 +1,4 @@
+# medisecure-backend/appointment_management/application/dtos/appointment_dtos.py
 from typing import Optional, List
 from pydantic import BaseModel, Field, validator
 from datetime import datetime
@@ -13,12 +14,38 @@ class AppointmentCreateDTO(BaseModel):
     reason: Optional[str] = None
     notes: Optional[str] = None
     
+    class Config:
+        # Configuration pour que Pydantic accepte et valide correctement les UUID
+        json_encoders = {
+            UUID: str
+        }
+    
     @validator('end_time')
     def validate_end_time(cls, end_time, values):
         """Valide que l'heure de fin est après l'heure de début"""
         if 'start_time' in values and end_time <= values['start_time']:
             raise ValueError("L'heure de fin doit être après l'heure de début")
         return end_time
+    
+    @validator('patient_id', 'doctor_id', pre=True)
+    def validate_uuid(cls, v):
+        """Valide et convertit les champs UUID"""
+        if isinstance(v, str):
+            return UUID(v)
+        return v
+    
+    @validator('start_time', 'end_time', pre=True)
+    def validate_datetime(cls, v):
+        """Valide et convertit les dates et heures"""
+        if isinstance(v, str):
+            try:
+                # Traiter les dates ISO avec ou sans 'Z'
+                if v.endswith('Z'):
+                    v = v[:-1] + '+00:00'
+                return datetime.fromisoformat(v)
+            except ValueError:
+                raise ValueError(f"Format de date invalide: {v}. Utilisez le format ISO 8601.")
+        return v
 
 class AppointmentUpdateDTO(BaseModel):
     """DTO pour la mise à jour d'un rendez-vous"""
@@ -28,12 +55,40 @@ class AppointmentUpdateDTO(BaseModel):
     reason: Optional[str] = None
     notes: Optional[str] = None
     
+    class Config:
+        # Configuration pour que Pydantic accepte et valide correctement les UUID
+        json_encoders = {
+            UUID: str
+        }
+    
     @validator('end_time')
     def validate_end_time(cls, end_time, values):
         """Valide que l'heure de fin est après l'heure de début"""
         if 'start_time' in values and values['start_time'] and end_time <= values['start_time']:
             raise ValueError("L'heure de fin doit être après l'heure de début")
         return end_time
+    
+    @validator('start_time', 'end_time', pre=True)
+    def validate_datetime(cls, v):
+        """Valide et convertit les dates et heures"""
+        if isinstance(v, str):
+            try:
+                # Traiter les dates ISO avec ou sans 'Z'
+                if v.endswith('Z'):
+                    v = v[:-1] + '+00:00'
+                return datetime.fromisoformat(v)
+            except ValueError:
+                raise ValueError(f"Format de date invalide: {v}. Utilisez le format ISO 8601.")
+        return v
+    
+    @validator('status')
+    def validate_status(cls, v):
+        """Valide que le statut est valide"""
+        if v is not None:
+            valid_statuses = ['scheduled', 'confirmed', 'cancelled', 'completed', 'missed']
+            if v not in valid_statuses:
+                raise ValueError(f"Statut invalide. Les valeurs valides sont: {', '.join(valid_statuses)}")
+        return v
 
 # DTOs pour les réponses
 class AppointmentResponseDTO(BaseModel):
@@ -52,6 +107,9 @@ class AppointmentResponseDTO(BaseModel):
     
     class Config:
         orm_mode = True
+        json_encoders = {
+            UUID: str
+        }
 
 class AppointmentListResponseDTO(BaseModel):
     """DTO pour la réponse avec une liste de rendez-vous"""

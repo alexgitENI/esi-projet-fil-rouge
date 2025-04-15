@@ -1,3 +1,4 @@
+# medisecure-backend/appointment_management/application/usecases/schedule_appointment_usecase.py
 from uuid import UUID
 from datetime import datetime
 import logging
@@ -56,22 +57,25 @@ class ScheduleAppointmentUseCase:
         """
         try:
             # Ajouter des logs pour les données reçues
-            logger.info(f"Données de rendez-vous reçues: {data}")
-            logger.info(f"Types des données: patient_id: {type(data.patient_id)}, doctor_id: {type(data.doctor_id)}")
-            logger.info(f"Types des dates: start_time: {type(data.start_time)}, end_time: {type(data.end_time)}")
-        
+            logger.info(f"Données de rendez-vous reçues: patient_id={data.patient_id}, doctor_id={data.doctor_id}")
+            logger.info(f"Dates: start_time={data.start_time}, end_time={data.end_time}")
+            
+            # S'assurer que les ID sont de type UUID
+            patient_id = data.patient_id if isinstance(data.patient_id, UUID) else UUID(str(data.patient_id))
+            doctor_id = data.doctor_id if isinstance(data.doctor_id, UUID) else UUID(str(data.doctor_id))
+            
             # Valider les heures de début et de fin
             self.appointment_service.validate_appointment_times(data.start_time, data.end_time)
             
             # Vérifier si le patient existe
-            patient = await self.patient_repository.get_by_id(data.patient_id)
+            patient = await self.patient_repository.get_by_id(patient_id)
             if not patient:
-                logger.error(f"Patient avec ID {data.patient_id} non trouvé")
-                raise PatientNotFoundException(data.patient_id)
+                logger.error(f"Patient avec ID {patient_id} non trouvé")
+                raise PatientNotFoundException(patient_id)
           
             # Vérifier si le créneau est disponible (aucun chevauchement)
             existing_appointments = await self.appointment_repository.get_by_doctor(
-                data.doctor_id, 
+                doctor_id, 
                 skip=0, 
                 limit=1000
             )
@@ -89,8 +93,8 @@ class ScheduleAppointmentUseCase:
             # Créer l'entité Appointment
             appointment = Appointment(
                 id=appointment_id,
-                patient_id=data.patient_id,
-                doctor_id=data.doctor_id,
+                patient_id=patient_id,
+                doctor_id=doctor_id,
                 start_time=data.start_time,
                 end_time=data.end_time,
                 status=AppointmentStatus.SCHEDULED,
@@ -122,6 +126,3 @@ class ScheduleAppointmentUseCase:
         except Exception as e:
             logger.exception(f"Erreur lors de la création du rendez-vous: {str(e)}")
             raise
-        finally:
-            # Ajouter des logs pour indiquer que le cas d'utilisation a terminé
-            logger.info("Fin du cas d'utilisation de planification de rendez-vous")

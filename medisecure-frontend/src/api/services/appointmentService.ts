@@ -62,45 +62,11 @@ const adaptAppointmentCreateDto = (frontDto: AppointmentCreateDto): any => {
   try {
     console.log("Adaptation des données du rendez-vous:", frontDto);
 
-    // Vérifier que startTime et endTime sont des chaînes valides
-    if (!frontDto.startTime || !frontDto.endTime) {
-      throw new Error("Les heures de début et de fin sont requises");
-    }
-
-    // Conversion des dates/heures en format ISO
-    let startTime: string;
-    let endTime: string;
-
-    // Convertir les dates et heures en format ISO complet
-    try {
-      // Si les dates sont déjà au format ISO, les utiliser directement
-      if (frontDto.startTime.includes("Z") && frontDto.endTime.includes("Z")) {
-        startTime = frontDto.startTime;
-        endTime = frontDto.endTime;
-      } else {
-        // Sinon construire les dates complètes à partir des informations fournies
-        const startDate = new Date(frontDto.startTime);
-        const endDate = new Date(frontDto.endTime);
-
-        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-          throw new Error(
-            `Dates invalides: ${frontDto.startTime}, ${frontDto.endTime}`
-          );
-        }
-
-        startTime = startDate.toISOString();
-        endTime = endDate.toISOString();
-      }
-    } catch (e) {
-      console.error("Erreur de conversion de date:", e);
-      throw new Error(`Erreur lors de la conversion des dates: ${e.message}`);
-    }
-
     return {
       patient_id: frontDto.patientId,
       doctor_id: frontDto.doctorId,
-      start_time: startTime,
-      end_time: endTime,
+      start_time: frontDto.startTime,
+      end_time: frontDto.endTime,
       reason: frontDto.reason || "Consultation",
       notes: frontDto.notes,
     };
@@ -115,26 +81,8 @@ const adaptAppointmentUpdateDto = (frontDto: AppointmentUpdateDto): any => {
   const backDto: any = {};
 
   if (frontDto.status !== undefined) backDto.status = frontDto.status;
-
-  // Traiter les dates de la même façon que pour la création
-  if (frontDto.startTime !== undefined) {
-    try {
-      const startTime = new Date(frontDto.startTime);
-      backDto.start_time = startTime.toISOString();
-    } catch (e) {
-      console.error("Erreur lors du parsing de la date de début:", e);
-    }
-  }
-
-  if (frontDto.endTime !== undefined) {
-    try {
-      const endTime = new Date(frontDto.endTime);
-      backDto.end_time = endTime.toISOString();
-    } catch (e) {
-      console.error("Erreur lors du parsing de la date de fin:", e);
-    }
-  }
-
+  if (frontDto.startTime !== undefined) backDto.start_time = frontDto.startTime;
+  if (frontDto.endTime !== undefined) backDto.end_time = frontDto.endTime;
   if (frontDto.reason !== undefined) backDto.reason = frontDto.reason;
   if (frontDto.notes !== undefined) backDto.notes = frontDto.notes;
 
@@ -279,7 +227,7 @@ const appointmentService = {
       const response = await apiClient.put<any>(
         ENDPOINTS.APPOINTMENTS.DETAIL(id),
         adaptedAppointment,
-        { timeout: 30000 } 
+        { timeout: 30000 }
       );
       console.log("Appointment updated successfully:", response);
       return adaptAppointmentFromApi(response);

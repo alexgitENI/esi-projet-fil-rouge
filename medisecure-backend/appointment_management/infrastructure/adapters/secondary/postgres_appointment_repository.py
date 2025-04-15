@@ -1,13 +1,18 @@
+# medisecure-backend/appointment_management/infrastructure/adapters/secondary/postgres_appointment_repository.py
 from typing import Optional, List
 from uuid import UUID
 from datetime import datetime, date
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import update, delete, and_, or_, func
+import logging
 
 from appointment_management.domain.entities.appointment import Appointment, AppointmentStatus
 from appointment_management.domain.ports.secondary.appointment_repository_protocol import AppointmentRepositoryProtocol
 from shared.infrastructure.database.models.appointment_model import AppointmentModel, AppointmentStatus as AppointmentStatusModel
+
+# Configuration du logging
+logger = logging.getLogger(__name__)
 
 class PostgresAppointmentRepository(AppointmentRepositoryProtocol):
     """
@@ -34,14 +39,21 @@ class PostgresAppointmentRepository(AppointmentRepositoryProtocol):
         Returns:
             Optional[Appointment]: Le rendez-vous trouvé ou None si non trouvé
         """
-        query = select(AppointmentModel).where(AppointmentModel.id == appointment_id)
-        result = await self.session.execute(query)
-        appointment_model = result.scalar_one_or_none()
-        
-        if not appointment_model:
-            return None
-        
-        return self._map_to_entity(appointment_model)
+        try:
+            logger.debug(f"Récupération du rendez-vous avec ID: {appointment_id}")
+            query = select(AppointmentModel).where(AppointmentModel.id == appointment_id)
+            result = await self.session.execute(query)
+            appointment_model = result.scalar_one_or_none()
+            
+            if not appointment_model:
+                logger.debug(f"Rendez-vous avec ID {appointment_id} non trouvé")
+                return None
+            
+            logger.debug(f"Rendez-vous trouvé: {appointment_model.id}")
+            return self._map_to_entity(appointment_model)
+        except Exception as e:
+            logger.exception(f"Erreur lors de la récupération du rendez-vous {appointment_id}: {str(e)}")
+            raise
     
     async def create(self, appointment: Appointment) -> Appointment:
         """
@@ -53,25 +65,40 @@ class PostgresAppointmentRepository(AppointmentRepositoryProtocol):
         Returns:
             Appointment: Le rendez-vous créé avec son ID généré
         """
-        appointment_model = AppointmentModel(
-            id=appointment.id,
-            patient_id=appointment.patient_id,
-            doctor_id=appointment.doctor_id,
-            start_time=appointment.start_time,
-            end_time=appointment.end_time,
-            status=AppointmentStatusModel(appointment.status.value),
-            reason=appointment.reason,
-            notes=appointment.notes,
-            created_at=appointment.created_at,
-            updated_at=appointment.updated_at,
-            is_active=appointment.is_active
-        )
-        
-        self.session.add(appointment_model)
-        await self.session.commit()
-        await self.session.refresh(appointment_model)
-        
-        return self._map_to_entity(appointment_model)
+        try:
+            logger.info(f"Création d'un nouveau rendez-vous: {appointment.id}")
+            logger.debug(f"Données du rendez-vous: patient_id={appointment.patient_id}, doctor_id={appointment.doctor_id}")
+            logger.debug(f"Dates: start_time={appointment.start_time}, end_time={appointment.end_time}")
+            
+            # S'assurer que les ID sont de type UUID
+            patient_id = appointment.patient_id if isinstance(appointment.patient_id, UUID) else UUID(str(appointment.patient_id))
+            doctor_id = appointment.doctor_id if isinstance(appointment.doctor_id, UUID) else UUID(str(appointment.doctor_id))
+            
+            # Créer le modèle avec les bonnes conversions de types
+            appointment_model = AppointmentModel(
+                id=appointment.id,
+                patient_id=patient_id,
+                doctor_id=doctor_id,
+                start_time=appointment.start_time,
+                end_time=appointment.end_time,
+                status=AppointmentStatusModel(appointment.status.value),
+                reason=appointment.reason,
+                notes=appointment.notes,
+                created_at=appointment.created_at,
+                updated_at=appointment.updated_at,
+                is_active=appointment.is_active
+            )
+            
+            self.session.add(appointment_model)
+            await self.session.commit()
+            await self.session.refresh(appointment_model)
+            
+            logger.info(f"Rendez-vous créé avec succès: {appointment_model.id}")
+            return self._map_to_entity(appointment_model)
+        except Exception as e:
+            logger.exception(f"Erreur lors de la création du rendez-vous: {str(e)}")
+            await self.session.rollback()
+            raise
     
     async def update(self, appointment: Appointment) -> Appointment:
         """
@@ -83,28 +110,40 @@ class PostgresAppointmentRepository(AppointmentRepositoryProtocol):
         Returns:
             Appointment: Le rendez-vous mis à jour
         """
-        query = (
-            update(AppointmentModel)
-            .where(AppointmentModel.id == appointment.id)
-            .values(
-                patient_id=appointment.patient_id,
-                doctor_id=appointment.doctor_id,
-                start_time=appointment.start_time,
-                end_time=appointment.end_time,
-                status=AppointmentStatusModel(appointment.status.value),
-                reason=appointment.reason,
-                notes=appointment.notes,
-                updated_at=datetime.utcnow(),
-                is_active=appointment.is_active
+        try:
+            logger.info(f"Mise à jour du rendez-vous: {appointment.id}")
+            
+            # S'assurer que les ID sont de type UUID
+            patient_id = appointment.patient_id if isinstance(appointment.patient_id, UUID) else UUID(str(appointment.patient_id))
+            doctor_id = appointment.doctor_id if isinstance(appointment.doctor_id, UUID) else UUID(str(appointment.doctor_id))
+            
+            query = (
+                update(AppointmentModel)
+                .where(AppointmentModel.id == appointment.id)
+                .values(
+                    patient_id=patient_id,
+                    doctor_id=doctor_id,
+                    start_time=appointment.start_time,
+                    end_time=appointment.end_time,
+                    status=AppointmentStatusModel(appointment.status.value),
+                    reason=appointment.reason,
+                    notes=appointment.notes,
+                    updated_at=datetime.utcnow(),
+                    is_active=appointment.is_active
+                )
             )
-        )
-        
-        await self.session.execute(query)
-        await self.session.commit()
-        
-        # Récupérer le rendez-vous mis à jour
-        updated_appointment = await self.get_by_id(appointment.id)
-        return updated_appointment
+            
+            await self.session.execute(query)
+            await self.session.commit()
+            
+            # Récupérer le rendez-vous mis à jour
+            updated_appointment = await self.get_by_id(appointment.id)
+            logger.info(f"Rendez-vous {appointment.id} mis à jour avec succès")
+            return updated_appointment
+        except Exception as e:
+            logger.exception(f"Erreur lors de la mise à jour du rendez-vous {appointment.id}: {str(e)}")
+            await self.session.rollback()
+            raise
     
     async def delete(self, appointment_id: UUID) -> bool:
         """
@@ -248,16 +287,20 @@ class PostgresAppointmentRepository(AppointmentRepositoryProtocol):
         Returns:
             Appointment: L'entité du domaine correspondante
         """
-        return Appointment(
-            id=appointment_model.id,
-            patient_id=appointment_model.patient_id,
-            doctor_id=appointment_model.doctor_id,
-            start_time=appointment_model.start_time,
-            end_time=appointment_model.end_time,
-            status=AppointmentStatus(appointment_model.status.value),
-            reason=appointment_model.reason,
-            notes=appointment_model.notes,
-            created_at=appointment_model.created_at,
-            updated_at=appointment_model.updated_at,
-            is_active=appointment_model.is_active
-        )
+        try:
+            return Appointment(
+                id=appointment_model.id,
+                patient_id=appointment_model.patient_id,
+                doctor_id=appointment_model.doctor_id,
+                start_time=appointment_model.start_time,
+                end_time=appointment_model.end_time,
+                status=AppointmentStatus(appointment_model.status.value),
+                reason=appointment_model.reason,
+                notes=appointment_model.notes,
+                created_at=appointment_model.created_at,
+                updated_at=appointment_model.updated_at,
+                is_active=appointment_model.is_active
+            )
+        except Exception as e:
+            logger.exception(f"Erreur lors de la conversion du modèle en entité: {str(e)}")
+            raise
