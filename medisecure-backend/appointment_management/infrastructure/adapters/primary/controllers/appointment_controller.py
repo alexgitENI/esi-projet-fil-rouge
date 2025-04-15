@@ -26,6 +26,26 @@ logger = logging.getLogger(__name__)
 # Créer un router pour les endpoints des rendez-vous
 router = APIRouter(prefix="/appointments", tags=["appointments"])
 
+def check_role_permission(role: str, allowed_roles: list) -> bool:
+    """
+    Vérifie si un rôle est autorisé, indépendamment de la casse.
+    
+    Args:
+        role: Le rôle à vérifier
+        allowed_roles: Liste des rôles autorisés
+        
+    Returns:
+        bool: True si le rôle est autorisé, False sinon
+    """
+    if not role:
+        return False
+    
+    # Normaliser le rôle et les rôles autorisés pour la comparaison
+    role_lower = role.lower()
+    allowed_roles_lower = [r.lower() for r in allowed_roles]
+    
+    return role_lower in allowed_roles_lower
+
 def get_container():
     """
     Fournit le container d'injection de dépendances.
@@ -46,8 +66,10 @@ async def create_appointment(
         logger.info(f"Données reçues pour la création d'un rendez-vous: {data}")
         
         # Vérifier si l'utilisateur a le droit de créer un rendez-vous
-        user_role = token_payload.get("role")
-        if user_role not in ["admin", "doctor", "nurse", "receptionist"]:
+        user_role = token_payload.get("role", "")
+        allowed_roles = ["admin", "doctor", "nurse", "receptionist"]
+        
+        if not check_role_permission(user_role, allowed_roles):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You don't have permission to create appointments"
@@ -109,8 +131,10 @@ async def list_appointments(
     """
     try:
         # Vérifier les permissions
-        user_role = token_payload.get("role")
-        if not user_role or user_role.lower() not in ["admin", "doctor", "nurse", "receptionist"]:
+        user_role = token_payload.get("role", "")
+        allowed_roles = ["admin", "doctor", "nurse", "receptionist"]
+        
+        if not check_role_permission(user_role, allowed_roles):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You don't have permission to list appointments"
@@ -247,8 +271,10 @@ async def update_appointment(
     """
     try:
         # Vérifier si l'utilisateur a le droit de mettre à jour un rendez-vous
-        user_role = token_payload.get("role")
-        if user_role not in ["admin", "doctor", "nurse", "receptionist"]:
+        user_role = token_payload.get("role", "")
+        allowed_roles = ["admin", "doctor", "nurse", "receptionist"]
+        
+        if not check_role_permission(user_role, allowed_roles):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You don't have permission to update appointments"
@@ -299,8 +325,10 @@ async def delete_appointment(
     """
     try:
         # Vérifier si l'utilisateur a le droit de supprimer un rendez-vous
-        user_role = token_payload.get("role")
-        if user_role not in ["admin", "doctor"]:
+        user_role = token_payload.get("role", "")
+        allowed_roles = ["admin", "doctor"]
+        
+        if not check_role_permission(user_role, allowed_roles):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Only administrators and doctors can delete appointments"
@@ -349,6 +377,16 @@ async def get_patient_appointments(
         HTTPException: En cas d'erreur
     """
     try:
+        # Vérifier les permissions
+        user_role = token_payload.get("role", "")
+        allowed_roles = ["admin", "doctor", "nurse", "receptionist"]
+        
+        if not check_role_permission(user_role, allowed_roles):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have permission to view patient appointments"
+            )
+            
         # Créer le cas d'utilisation avec les dépendances nécessaires
         use_case = GetPatientAppointmentsUseCase(
             appointment_repository=container.appointment_repository(),
@@ -400,6 +438,16 @@ async def get_doctor_appointments(
         HTTPException: En cas d'erreur
     """
     try:
+        # Vérifier les permissions
+        user_role = token_payload.get("role", "")
+        allowed_roles = ["admin", "doctor", "nurse", "receptionist"]
+        
+        if not check_role_permission(user_role, allowed_roles):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have permission to view doctor appointments"
+            )
+            
         # Récupérer les rendez-vous du médecin
         appointment_repository = container.appointment_repository()
         appointments = await appointment_repository.get_by_doctor(doctor_id, skip, limit)
@@ -468,6 +516,16 @@ async def get_calendar_appointments(
         HTTPException: En cas d'erreur
     """
     try:
+        # Vérifier les permissions
+        user_role = token_payload.get("role", "")
+        allowed_roles = ["admin", "doctor", "nurse", "receptionist"]
+        
+        if not check_role_permission(user_role, allowed_roles):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have permission to view the appointment calendar"
+            )
+            
         # Vérifier si le mois est valide
         if month < 1 or month > 12:
             raise HTTPException(

@@ -224,8 +224,10 @@ async def update_patient(
     """
     try:
         # Vérifier si l'utilisateur a le droit de mettre à jour un patient
-        user_role = token_payload.get("role")
-        if user_role not in ["admin", "doctor", "nurse", "receptionist"]:
+        user_role = token_payload.get("role", "").lower()
+        allowed_roles = ["admin", "doctor", "nurse", "receptionist"]
+        
+        if not check_role_permission(user_role, allowed_roles):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You don't have permission to update patient folders"
@@ -296,7 +298,8 @@ async def delete_patient(
     """
     try:
         # Vérifier si l'utilisateur a le droit de supprimer un patient
-        user_role = token_payload.get("role")
+        user_role = token_payload.get("role", "").lower()
+        
         if user_role != "admin":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -344,7 +347,7 @@ async def list_patients(
         
         logger.debug(f"User role: {user_role}")  # Add debug logging
         
-        if not user_role or user_role not in allowed_roles:
+        if not check_role_permission(user_role, allowed_roles):
             logger.warning(f"Unauthorized access attempt with role: {user_role}")
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -362,11 +365,6 @@ async def list_patients(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Database error occurred"
             )
-        
-        # Récupération des patients
-        patient_repository = container.patient_repository()
-        patients = await patient_repository.list_all(skip, limit)
-        total = await patient_repository.count()
         
         # Conversion en DTOs
         patient_dtos = [
@@ -423,8 +421,10 @@ async def search_patients(
     """Recherche des patients selon différents critères."""
     try:
         # Vérification des permissions
-        user_role = token_payload.get("role")
-        if user_role not in ["admin", "doctor", "nurse", "receptionist"]:
+        user_role = token_payload.get("role", "").lower()
+        allowed_roles = ["admin", "doctor", "nurse", "receptionist"]
+        
+        if not check_role_permission(user_role, allowed_roles):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You don't have permission to search patients"
