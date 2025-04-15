@@ -1,4 +1,5 @@
 # medisecure-backend/api/middlewares/authentication_middleware.py
+
 from fastapi import Request, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
@@ -8,7 +9,7 @@ from datetime import datetime, timedelta
 import logging
 
 # Configuration du logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)  # Ajout de cette ligne qui manquait
 
 security = HTTPBearer()
 

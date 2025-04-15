@@ -62,63 +62,47 @@ const adaptAppointmentCreateDto = (frontDto: AppointmentCreateDto): any => {
   try {
     console.log("Adaptation des données du rendez-vous:", frontDto);
 
-    // Vérifier que les données nécessaires sont présentes
-    if (!frontDto.patientId || !frontDto.doctorId) {
-      throw new Error("PatientId et doctorId sont requis");
-    }
-
+    // Vérifier que startTime et endTime sont des chaînes valides
     if (!frontDto.startTime || !frontDto.endTime) {
       throw new Error("Les heures de début et de fin sont requises");
     }
 
-    // Formater les dates correctement
-    // S'assurer que les dates sont au format ISO
-    let startTime: Date;
-    let endTime: Date;
+    // Conversion des dates/heures en format ISO
+    let startTime: string;
+    let endTime: string;
 
+    // Convertir les dates et heures en format ISO complet
     try {
-      // Créer des objets Date à partir des chaînes
-      if (typeof frontDto.startTime === "string") {
-        // Si c'est juste une heure, on combine avec la date
-        if (frontDto.startTime.length <= 8) {
-          // format HH:MM ou HH:MM:SS
-          const today = new Date().toISOString().split("T")[0]; // Format YYYY-MM-DD
-          startTime = new Date(`${today}T${frontDto.startTime}`);
-        } else {
-          startTime = new Date(frontDto.startTime);
-        }
+      // Si les dates sont déjà au format ISO, les utiliser directement
+      if (frontDto.startTime.includes("Z") && frontDto.endTime.includes("Z")) {
+        startTime = frontDto.startTime;
+        endTime = frontDto.endTime;
       } else {
-        startTime = frontDto.startTime as any;
-      }
+        // Sinon construire les dates complètes à partir des informations fournies
+        const startDate = new Date(frontDto.startTime);
+        const endDate = new Date(frontDto.endTime);
 
-      if (typeof frontDto.endTime === "string") {
-        if (frontDto.endTime.length <= 8) {
-          const today = new Date().toISOString().split("T")[0];
-          endTime = new Date(`${today}T${frontDto.endTime}`);
-        } else {
-          endTime = new Date(frontDto.endTime);
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+          throw new Error(
+            `Dates invalides: ${frontDto.startTime}, ${frontDto.endTime}`
+          );
         }
-      } else {
-        endTime = frontDto.endTime as any;
-      }
 
-      // Valider les dates
-      if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
-        throw new Error("Dates invalides");
+        startTime = startDate.toISOString();
+        endTime = endDate.toISOString();
       }
     } catch (e) {
-      console.error("Erreur lors du parsing des dates:", e);
-      throw new Error("Format de date invalide");
+      console.error("Erreur de conversion de date:", e);
+      throw new Error(`Erreur lors de la conversion des dates: ${e.message}`);
     }
 
-    // Créer l'objet à envoyer à l'API
     return {
       patient_id: frontDto.patientId,
       doctor_id: frontDto.doctorId,
-      start_time: startTime.toISOString(),
-      end_time: endTime.toISOString(),
+      start_time: startTime,
+      end_time: endTime,
       reason: frontDto.reason || "Consultation",
-      notes: frontDto.notes || "",
+      notes: frontDto.notes,
     };
   } catch (error) {
     console.error("Erreur lors de l'adaptation des données:", error);
@@ -274,7 +258,7 @@ const appointmentService = {
       const response = await apiClient.post<any>(
         ENDPOINTS.APPOINTMENTS.BASE,
         adaptedAppointment,
-        { timeout: 30000 } // Augmenter le timeout à 30 secondes
+        { timeout: 30000 }
       );
 
       console.log("Appointment created successfully:", response);
@@ -295,7 +279,7 @@ const appointmentService = {
       const response = await apiClient.put<any>(
         ENDPOINTS.APPOINTMENTS.DETAIL(id),
         adaptedAppointment,
-        { timeout: 30000 } // Augmenter le timeout
+        { timeout: 30000 } 
       );
       console.log("Appointment updated successfully:", response);
       return adaptAppointmentFromApi(response);
