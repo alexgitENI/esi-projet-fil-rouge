@@ -4,7 +4,7 @@ from typing import Optional, List, Dict, Any
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, Path, status
 from datetime import date, timedelta, datetime
-
+import logging
 
 from shared.services.authenticator.extract_token import extract_token_payload
 from shared.container.container import Container
@@ -19,6 +19,9 @@ from appointment_management.application.usecases.update_appointment_usecase impo
 from appointment_management.application.usecases.get_patient_appointments_usecase import GetPatientAppointmentsUseCase
 from appointment_management.domain.entities.appointment import AppointmentStatus
 from patient_management.domain.exceptions.patient_exceptions import PatientNotFoundException
+
+# Configuration du logging
+logger = logging.getLogger(__name__)
 
 # Créer un router pour les endpoints des rendez-vous
 router = APIRouter(prefix="/appointments", tags=["appointments"])
