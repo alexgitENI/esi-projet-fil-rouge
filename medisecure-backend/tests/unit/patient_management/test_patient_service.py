@@ -1,3 +1,5 @@
+# tests/unit/patient_management/test_patient_service.py
+
 import pytest
 from datetime import date, datetime, timedelta
 from uuid import uuid4
@@ -112,37 +114,50 @@ def test_validate_patient_data_future_date_of_birth(patient_service):
     
     assert "future" in str(excinfo.value)
 
-def test_check_consent_for_minor_with_consent(patient_service, monkeypatch):
+# Modification des tests qui utilisent monkeypatch.setattr pour "age"
+class PatientWithModifiableAge(Patient):
+    """Classe héritant de Patient avec un âge modifiable pour les tests"""
+    def __init__(self, *args, custom_age=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._custom_age = custom_age
+        
+    @property
+    def age(self):
+        if self._custom_age is not None:
+            return self._custom_age
+        return super().age
+        
+    @age.setter
+    def age(self, value):
+        self._custom_age = value
+
+def test_check_consent_for_minor_with_consent(patient_service):
     """Test la vérification du consentement pour un mineur avec consentement"""
     # Arrange
-    patient = Patient(
+    patient = PatientWithModifiableAge(
         id=uuid4(),
         first_name="Child",
         last_name="Doe",
         date_of_birth=date.today() - timedelta(days=365 * 10),  # 10 ans
-        gender="male"
+        gender="male",
+        custom_age=10  # Utiliser l'attribut custom_age au lieu de monkeypatch
     )
-    
-    # Mock de la propriété age pour qu'elle retourne 10
-    monkeypatch.setattr(patient, "age", 10)
     
     # Act & Assert
     # Si le tuteur a donné son consentement, la fonction ne devrait pas lever d'exception
     patient_service.check_consent_for_minor(patient, True)
 
-def test_check_consent_for_minor_without_consent(patient_service, monkeypatch):
+def test_check_consent_for_minor_without_consent(patient_service):
     """Test la vérification du consentement pour un mineur sans consentement"""
     # Arrange
-    patient = Patient(
+    patient = PatientWithModifiableAge(
         id=uuid4(),
         first_name="Child",
         last_name="Doe",
         date_of_birth=date.today() - timedelta(days=365 * 10),  # 10 ans
-        gender="male"
+        gender="male",
+        custom_age=10  # Utiliser l'attribut custom_age au lieu de monkeypatch
     )
-    
-    # Mock de la propriété age pour qu'elle retourne 10
-    monkeypatch.setattr(patient, "age", 10)
     
     # Act & Assert
     with pytest.raises(MissingGuardianConsentException) as excinfo:
@@ -150,19 +165,17 @@ def test_check_consent_for_minor_without_consent(patient_service, monkeypatch):
     
     assert str(patient.id) in str(excinfo.value)
 
-def test_check_consent_for_adult(patient_service, monkeypatch):
+def test_check_consent_for_adult(patient_service):
     """Test la vérification du consentement pour un adulte"""
     # Arrange
-    patient = Patient(
+    patient = PatientWithModifiableAge(
         id=uuid4(),
         first_name="Adult",
         last_name="Doe",
         date_of_birth=date.today() - timedelta(days=365 * 30),  # 30 ans
-        gender="male"
+        gender="male",
+        custom_age=30  # Utiliser l'attribut custom_age au lieu de monkeypatch
     )
-    
-    # Mock de la propriété age pour qu'elle retourne 30
-    monkeypatch.setattr(patient, "age", 30)
     
     # Act & Assert
     # Même si le tuteur n'a pas donné son consentement, la fonction ne devrait pas lever d'exception
