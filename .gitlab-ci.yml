@@ -9,7 +9,6 @@ build-job:
   stage: build
   script:
     - powershell -Command "Set-Location ..; docker-compose build; if ($LASTEXITCODE -ne 0) { exit 1 }; docker-compose up -d; if ($LASTEXITCODE -ne 0) { exit 1 }"
-
 unit-test-job:
   stage: test
   dependencies:
