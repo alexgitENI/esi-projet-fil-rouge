@@ -113,19 +113,3 @@ class Container(containers.DeclarativeContainer):
             logger.info(f"Environnement: {env}, Base de données: {masked_url}")
         else:
             logger.info(f"Environnement: {env}, URL de base de données configurée")
-    
-    # Configuration conditionnelle selon l'environnement
-    def configure_for_environment(self):
-        """Configure le container pour l'environnement actuel"""
-        environment = os.getenv("ENVIRONMENT", "development")
-        
-        if environment == "development":
-            # Use development configurations
-            self.user_repository = providers.Singleton(PostgresUserRepository)
-            self.patient_repository = providers.Singleton(PostgresPatientRepository)
-            self.appointment_repository = providers.Singleton(PostgresAppointmentRepository)
-        else:
-            # Use production configurations
-            self.user_repository = providers.Singleton(PostgresUserRepository)
-            self.patient_repository = providers.Singleton(PostgresPatientRepository)
-            self.appointment_repository = providers.Singleton(PostgresAppointmentRepository)

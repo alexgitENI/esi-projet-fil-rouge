@@ -35,10 +35,6 @@ load_dotenv()
 
 # Initialiser le container
 container = Container()
-try:
-    container.configure_for_environment()
-except AttributeError:
-    logging.warning("La méthode configure_for_environment n'est pas disponible sur le container")
 
 # Informations de version pour l'API
 API_VERSION = "1.0.0"
@@ -56,9 +52,9 @@ app = FastAPI(
 # Configuration CORS - Modification pour accepter les requêtes du frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Assurez-vous que c'est bien l'origine de votre frontend
+    allow_origins=["http://localhost:5173", "*"],  # Ajout de "*" pour le développement
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],  # Ajout de toutes les méthodes
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
     expose_headers=["*"]
 )
