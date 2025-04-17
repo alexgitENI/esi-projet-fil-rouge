@@ -9,7 +9,7 @@ build-job:
   stage: build
   image: docker:latest
   services:
-    - docker:19.03.12-dind # Docker in Docker (nécessaire pour exécuter des commandes Docker dans des pipelines)
+    - docker:20.10.7-dind  # Version mise à jour de Docker-in-Docker# Docker in Docker (nécessaire pour exécuter des commandes Docker dans des pipelines)
   script:
     - docker compose build || exit 1
     - docker compose up -d || exit 1
