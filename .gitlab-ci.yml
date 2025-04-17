@@ -8,9 +8,7 @@ build-job:
     - windows-shell-true
   stage: build
   script:
-    - cd ../
-    - docker-compose build
-    - docker-compose up -d
+    - powershell -Command "Set-Location ..; docker-compose build; if ($LASTEXITCODE -ne 0) { exit 1 }; docker-compose up -d; if ($LASTEXITCODE -ne 0) { exit 1 }"
 
 unit-test-job:
   stage: test
