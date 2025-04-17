@@ -17,7 +17,6 @@ unit-test-job:
     - build-job
   script:
     - pytest  
-
 cleanup-job:
   stage: cleanup
   script:
