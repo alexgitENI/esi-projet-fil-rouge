@@ -1,17 +1,30 @@
+# medisecure-backend/Dockerfile
 FROM python:3.9-slim
 
 WORKDIR /app
 
-# Install dependencies and PostgreSQL client
-RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Installer les dépendances et le client PostgreSQL
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends postgresql-client gcc python3-dev libpq-dev && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copy application code
+# Copier les fichiers de dépendances
+COPY requirements.txt .
+COPY pyproject.toml .
+
+# Installer les dépendances
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copier le code de l'application
 COPY . .
 
-# Set Python path
+# Définir la variable PYTHONPATH
 ENV PYTHONPATH=/app
 
-# Command to run the application
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Définir le point d'entrée avec un script pour attendre que la base de données soit prête
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
+# Commande pour exécuter l'application
+CMD ["/start.sh"]

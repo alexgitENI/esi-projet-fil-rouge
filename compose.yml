@@ -1,34 +1,15 @@
-# Fichier docker-compose.yml
-services:
-  api:
-    build:
-      context: ./medisecure-backend
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./medisecure-backend:/app
-    environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/medisecure
-      - ENVIRONMENT=development
-      - JWT_SECRET_KEY=your_secret_key_for_development
-      - JWT_ALGORITHM=HS256
-      - JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
-      - CORS_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: "no"
-    command: ./start.sh
+# docker-compose.yml
+version: '3.8'
 
+services:
   db:
-    image: postgres:13-alpine
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
+    image: postgres:14-alpine
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=medisecure
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: medisecure
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
@@ -37,17 +18,34 @@ services:
       timeout: 5s
       retries: 5
 
-  frontend:
-    build:
-      context: ./medisecure-frontend
-      dockerfile: Dockerfile
+  api:
+    build: ./medisecure-backend
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/medisecure
+      - JWT_SECRET_KEY=your_secret_key_here
+      - JWT_ALGORITHM=HS256
+      - JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - ENVIRONMENT=development
+      - HOST=0.0.0.0
+      - PORT=8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./medisecure-backend:/app
+    command: ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+  web:
+    build: ./medisecure-frontend
     ports:
       - "5173:5173"
     volumes:
       - ./medisecure-frontend:/app
       - /app/node_modules
     environment:
-      - VITE_API_URL=http://api:8000/api
+      - VITE_API_URL=http://localhost:8000/api
     depends_on:
       - api
 
