@@ -16,12 +16,16 @@ build-job:
 
 
 unit-test-job:
+  tags:
+  - windows-shell-true
   stage: test
   dependencies:
     - build-job
   script:
     - pytest  
 cleanup-job:
+  tags:
+  - windows-shell-true
   stage: cleanup
   script:
     - docker-compose down 
