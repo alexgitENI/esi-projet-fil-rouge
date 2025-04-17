@@ -9,7 +9,7 @@ build-job:
   stage: build
   script:
     - powershell -Command "Set-Location .."
-    - powershell -Command "docker-compose build"
+    - powershell -Command "docker-compose build --no-cache"
     - if ($LASTEXITCODE -ne 0) { exit 1 }
     - powershell -Command "docker-compose up -d"
     - if ($LASTEXITCODE -ne 0) { exit 1 }
@@ -23,7 +23,7 @@ unit-test-job:
     - build-job
   script:
     - docker ps
-    - docker ps exec -it esi-projet-fil-rouge-api-1 pytest
+    - docker exec -it esi-projet-fil-rouge-api-1 pytest
 cleanup-job:
   tags:
   - windows-shell-true
