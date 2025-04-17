@@ -5,9 +5,8 @@ stages:
 
 build-job:
   tags:
-    - windows-docker
+    - windows-shell
   stage: build
-  services: []
   script:
     - docker-compose build || exit 1
     - docker-compose up -d || exit 1
@@ -17,9 +16,9 @@ unit-test-job:
   dependencies:
     - build-job
   script:
-    - pytest  # Run unit tests
+    - pytest  
 
 cleanup-job:
   stage: cleanup
   script:
-    - docker-compose down  # Tear down the services
+    - docker-compose down 
