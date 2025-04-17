@@ -5,21 +5,24 @@ stages:
 
 build-job:
   stage: build
-  image: docker:latest
-  services:
-    - docker:19.03.12-dind # Docker in Docker (nécessaire pour exécuter des commandes Docker dans des pipelines)
+  image: debian:latest
+  before_script:
+    - apt-get update && apt-get install -y docker.io docker-compose
   script:
-    - docker compose build || exit 1
-    - docker compose up -d || exit 1
+    - docker-compose build || exit 1
+    - docker-compose up -d || exit 1
 
 unit-test-job:
   stage: test
   dependencies:
     - build-job
+  before_script:
+    - apt-get update && apt-get install -y
+    - pip3 install pytest
   script:
     - pytest
 
 cleanup-job:
   stage: cleanup
   script:
-    - docker compose down
+    - docker-compose down
