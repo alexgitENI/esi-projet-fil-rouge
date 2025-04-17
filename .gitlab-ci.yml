@@ -5,7 +5,7 @@ stages:
 
 build-job:
   tags:
-    - windows-shell
+    - windows-shell-true
   stage: build
   script:
     - docker-compose build || exit 1
