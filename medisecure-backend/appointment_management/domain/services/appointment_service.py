@@ -1,9 +1,13 @@
-from typing import Optional
-from datetime import datetime, date
+# medisecure-backend/appointment_management/domain/services/appointment_service.py
+from typing import Optional, List
+from datetime import datetime, date, timedelta
 from uuid import UUID
+import logging
 
 from appointment_management.domain.entities.appointment import Appointment, AppointmentStatus
-from patient_management.domain.exceptions.patient_exceptions import PatientNotFoundException
+
+# Configuration du logging
+logger = logging.getLogger(__name__)
 
 class AppointmentService:
     """
@@ -21,13 +25,27 @@ class AppointmentService:
             
         Raises:
             ValueError: Si l'heure de fin est avant ou égale à l'heure de début
+                       ou si les heures ne sont pas valides
         """
+        # Vérifier que les dates sont bien des objets datetime
+        if not isinstance(start_time, datetime) or not isinstance(end_time, datetime):
+            logger.error(f"Types de dates invalides: start_time={type(start_time)}, end_time={type(end_time)}")
+            raise ValueError("Les heures de début et de fin doivent être des objets datetime")
+        
+        # Vérifier que l'heure de début est avant l'heure de fin
         if end_time <= start_time:
+            logger.error(f"Heure de fin ({end_time}) avant ou égale à l'heure de début ({start_time})")
             raise ValueError("L'heure de fin doit être après l'heure de début")
+        
+        # Vérifier que la durée du rendez-vous est raisonnable (par exemple, pas plus de 24h)
+        duration = end_time - start_time
+        if duration > timedelta(hours=24):
+            logger.warning(f"Durée de rendez-vous très longue détectée: {duration}")
+            # Ce n'est qu'un avertissement, pas une erreur
     
     def check_appointment_overlap(
         self, 
-        existing_appointments: list[Appointment], 
+        existing_appointments: List[Appointment], 
         start_time: datetime, 
         end_time: datetime,
         appointment_id: Optional[UUID] = None
@@ -44,6 +62,9 @@ class AppointmentService:
         Returns:
             bool: True si le rendez-vous chevauche un autre, False sinon
         """
+        # Journaliser le nombre de rendez-vous à vérifier
+        logger.debug(f"Vérification de chevauchement parmi {len(existing_appointments)} rendez-vous existants")
+        
         for appointment in existing_appointments:
             # Ignorer le rendez-vous lui-même pour les mises à jour
             if appointment_id and appointment.id == appointment_id:
@@ -52,24 +73,31 @@ class AppointmentService:
             # Ignorer les rendez-vous annulés
             if appointment.status == AppointmentStatus.CANCELLED:
                 continue
+            
+            # Ignorer les rendez-vous terminés
+            if appointment.status == AppointmentStatus.COMPLETED:
+                continue
                 
             # Vérifier si les plages horaires se chevauchent
-            if (
-                (start_time < appointment.end_time and end_time > appointment.start_time) or
-                (start_time == appointment.start_time and end_time == appointment.end_time)
-            ):
+            # Un chevauchement existe si l'une des plages commence avant que l'autre ne se termine
+            # et se termine après que l'autre n'ait commencé
+            if (start_time < appointment.end_time and end_time > appointment.start_time):
+                logger.info(f"Chevauchement détecté avec le rendez-vous {appointment.id}")
+                logger.debug(f"Nouveau: {start_time} - {end_time}, Existant: {appointment.start_time} - {appointment.end_time}")
                 return True
                 
+        # Aucun chevauchement trouvé
+        logger.debug("Aucun chevauchement de rendez-vous détecté")
         return False
     
     def get_available_slots(
         self, 
-        existing_appointments: list[Appointment], 
+        existing_appointments: List[Appointment], 
         date_to_check: date,
         slot_duration_minutes: int = 30,
         start_hour: int = 8,
         end_hour: int = 18
-    ) -> list[dict]:
+    ) -> List[Dict]:
         """
         Trouve les créneaux disponibles pour une date donnée.
         
@@ -81,7 +109,7 @@ class AppointmentService:
             end_hour: L'heure de fin de la journée
             
         Returns:
-            list[dict]: Liste des créneaux disponibles avec heure de début et de fin
+            List[Dict]: Liste des créneaux disponibles avec heure de début et de fin
         """
         # Filtrer les rendez-vous pour la date spécifiée
         date_appointments = [
@@ -96,7 +124,7 @@ class AppointmentService:
         end_time = datetime.combine(date_to_check, datetime.min.time().replace(hour=end_hour))
         
         while current_time < end_time:
-            slot_end = current_time.replace(minute=current_time.minute + slot_duration_minutes)
+            slot_end = current_time + timedelta(minutes=slot_duration_minutes)
             all_slots.append({
                 "start": current_time,
                 "end": slot_end,
@@ -108,10 +136,7 @@ class AppointmentService:
         for appointment in date_appointments:
             for slot in all_slots:
                 # Si le rendez-vous chevauche le créneau, marquer comme non disponible
-                if (
-                    (appointment.start_time < slot["end"] and appointment.end_time > slot["start"]) or
-                    (appointment.start_time == slot["start"] and appointment.end_time == slot["end"])
-                ):
+                if (appointment.start_time < slot["end"] and appointment.end_time > slot["start"]):
                     slot["available"] = False
         
         # Retourner uniquement les créneaux disponibles

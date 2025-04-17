@@ -19,6 +19,8 @@ class AppointmentCreateDTO(BaseModel):
         json_encoders = {
             UUID: str
         }
+        # Permettre de convertir automatiquement les types
+        arbitrary_types_allowed = True
     
     @validator('end_time')
     def validate_end_time(cls, end_time, values):
@@ -31,8 +33,14 @@ class AppointmentCreateDTO(BaseModel):
     def validate_uuid(cls, v):
         """Valide et convertit les champs UUID"""
         if isinstance(v, str):
-            return UUID(v)
-        return v
+            try:
+                return UUID(v)
+            except ValueError:
+                raise ValueError(f"Format UUID invalide: {v}")
+        elif isinstance(v, UUID):
+            return v
+        else:
+            raise ValueError(f"Type non pris en charge pour UUID: {type(v)}")
     
     @validator('start_time', 'end_time', pre=True)
     def validate_datetime(cls, v):
@@ -44,7 +52,15 @@ class AppointmentCreateDTO(BaseModel):
                     v = v[:-1] + '+00:00'
                 return datetime.fromisoformat(v)
             except ValueError:
-                raise ValueError(f"Format de date invalide: {v}. Utilisez le format ISO 8601.")
+                try:
+                    # Essayer un autre format commun
+                    return datetime.strptime(v, "%Y-%m-%dT%H:%M:%S.%fZ")
+                except ValueError:
+                    try:
+                        # Format simple date + heure
+                        return datetime.strptime(v, "%Y-%m-%d %H:%M:%S")
+                    except ValueError:
+                        raise ValueError(f"Format de date invalide: {v}. Utilisez le format ISO 8601.")
         return v
 
 class AppointmentUpdateDTO(BaseModel):
@@ -60,17 +76,21 @@ class AppointmentUpdateDTO(BaseModel):
         json_encoders = {
             UUID: str
         }
+        # Permettre de convertir automatiquement les types
+        arbitrary_types_allowed = True
     
     @validator('end_time')
     def validate_end_time(cls, end_time, values):
         """Valide que l'heure de fin est après l'heure de début"""
-        if 'start_time' in values and values['start_time'] and end_time <= values['start_time']:
+        if end_time and 'start_time' in values and values['start_time'] and end_time <= values['start_time']:
             raise ValueError("L'heure de fin doit être après l'heure de début")
         return end_time
     
     @validator('start_time', 'end_time', pre=True)
     def validate_datetime(cls, v):
         """Valide et convertit les dates et heures"""
+        if v is None:
+            return v
         if isinstance(v, str):
             try:
                 # Traiter les dates ISO avec ou sans 'Z'
@@ -78,7 +98,15 @@ class AppointmentUpdateDTO(BaseModel):
                     v = v[:-1] + '+00:00'
                 return datetime.fromisoformat(v)
             except ValueError:
-                raise ValueError(f"Format de date invalide: {v}. Utilisez le format ISO 8601.")
+                try:
+                    # Essayer un autre format commun
+                    return datetime.strptime(v, "%Y-%m-%dT%H:%M:%S.%fZ")
+                except ValueError:
+                    try:
+                        # Format simple date + heure
+                        return datetime.strptime(v, "%Y-%m-%d %H:%M:%S")
+                    except ValueError:
+                        raise ValueError(f"Format de date invalide: {v}. Utilisez le format ISO 8601.")
         return v
     
     @validator('status')
@@ -110,6 +138,8 @@ class AppointmentResponseDTO(BaseModel):
         json_encoders = {
             UUID: str
         }
+        # Permettre les conversions arbitraires de types
+        arbitrary_types_allowed = True
 
 class AppointmentListResponseDTO(BaseModel):
     """DTO pour la réponse avec une liste de rendez-vous"""
@@ -117,3 +147,7 @@ class AppointmentListResponseDTO(BaseModel):
     total: int
     skip: int
     limit: int
+    
+    class Config:
+        # Permettre les conversions arbitraires de types
+        arbitrary_types_allowed = True
