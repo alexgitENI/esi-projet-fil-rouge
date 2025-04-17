@@ -7,14 +7,10 @@ build-job:
   tags:
     - windows-docker
   stage: build
-  image: docker:latest  # Utilisation de l'image Docker standard
+  image: docker:latest  # Using Docker image to run Docker commands
   services: []
-  volumes:
-    - /var/run/docker.sock:/var/run/docker.sock  # Partage du socket Docker de l'hôte
   script:
-    # Build de l'image avec docker-compose
     - docker-compose build || exit 1
-    # Lancement des services en arrière-plan
     - docker-compose up -d || exit 1
 
 unit-test-job:
@@ -22,9 +18,9 @@ unit-test-job:
   dependencies:
     - build-job
   script:
-    - pytest  # Exécution des tests unitaires
+    - pytest  # Run unit tests
 
 cleanup-job:
   stage: cleanup
   script:
-    - docker-compose down  # Arrêt des services Docker
+    - docker-compose down  # Tear down the services
