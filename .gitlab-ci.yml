@@ -22,7 +22,7 @@ unit-test-job:
   dependencies:
     - build-job
   script:
-    - pytest  
+    - docker exec -it api pytest
 cleanup-job:
   tags:
   - windows-shell-true
