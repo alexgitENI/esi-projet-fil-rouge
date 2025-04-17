@@ -7,21 +7,24 @@ build-job:
   tags:
     - windows-docker
   stage: build
-  image: docker:latest
-  services:
-    - docker:20.10.7-dind  # Version mise à jour de Docker-in-Docker# Docker in Docker (nécessaire pour exécuter des commandes Docker dans des pipelines)
+  image: docker:latest  # Utilisation de l'image Docker standard
+  services: []
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock  # Partage du socket Docker de l'hôte
   script:
-    - docker compose build || exit 1
-    - docker compose up -d || exit 1
+    # Build de l'image avec docker-compose
+    - docker-compose build || exit 1
+    # Lancement des services en arrière-plan
+    - docker-compose up -d || exit 1
 
 unit-test-job:
   stage: test
   dependencies:
     - build-job
   script:
-    - pytest
+    - pytest  # Exécution des tests unitaires
 
 cleanup-job:
   stage: cleanup
   script:
-    - docker compose down
+    - docker-compose down  # Arrêt des services Docker
