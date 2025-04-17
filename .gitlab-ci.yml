@@ -7,7 +7,6 @@ build-job:
   tags:
     - windows-docker
   stage: build
-  image: docker:latest  # Using Docker image to run Docker commands
   services: []
   script:
     - docker-compose build || exit 1
