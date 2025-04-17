@@ -1,6 +1,5 @@
 // medisecure-frontend/src/api/endpoints.ts
-export const API_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+export const API_URL = "http://localhost:8000/api";
 
 export const ENDPOINTS = {
   AUTH: {
@@ -10,9 +9,9 @@ export const ENDPOINTS = {
     RESET_PASSWORD: "/auth/reset-password",
   },
   PATIENTS: {
-    BASE: "/patients", // Suppression du slash final
-    DETAIL: (id: string) => `/patients/${id}`, // Suppression du slash final
-    SEARCH: "/patients/search", // Suppression du slash final
+    BASE: "/patients",
+    DETAIL: (id: string) => `/patients/${id}`,
+    SEARCH: "/patients/search",
   },
   APPOINTMENTS: {
     BASE: "/appointments",

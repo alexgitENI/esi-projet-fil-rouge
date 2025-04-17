@@ -1,9 +1,5 @@
 // medisecure-frontend/src/api/apiClient.ts
-import axios, {
-  AxiosError,
-  AxiosInstance,
-  AxiosRequestConfig
-} from "axios";
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
 import { API_URL } from "./endpoints";
 
 class ApiClient {
