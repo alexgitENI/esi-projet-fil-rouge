@@ -22,6 +22,8 @@ unit-test-job:
   dependencies:
     - build-job
   script:
+    - echo "Conversion des fins de ligne en LF..."
+    - find . -type f -exec dos2unix {} \;
     - docker ps
     - docker exec esi-projet-fil-rouge-api-1 pytest
 cleanup-job:
