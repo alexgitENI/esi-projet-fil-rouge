@@ -5,15 +5,12 @@ stages:
 
 build-job:
   stage: build
-  image: ubuntu:latest  # Utiliser l'image Ubuntu officielle comme base
+  image: docker:latest  # Utiliser l'image Docker officielle
+  services:
+    - docker:19.03.12-dind  # Activer Docker-in-Docker
   script:
-    # Mettre à jour le package manager et installer curl, jq et docker
-    - apt-get update && apt-get install -y curl jq lsb-release sudo
-    - curl -fsSL https://get.docker.com | sh  # Installer Docker
-
-    # Ajouter l'utilisateur au groupe Docker (permettre d'utiliser Docker sans sudo)
-    - usermod -aG docker $USER
-    - newgrp docker  # Appliquer les changements du groupe immédiatement
+    # Installer curl et jq
+    - apk update && apk add curl jq
 
     # Télécharger la dernière version de docker-compose
     - curl -L "https://github.com/docker/compose/releases/download/$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name)/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
