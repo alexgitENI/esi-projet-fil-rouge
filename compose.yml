@@ -49,5 +49,15 @@ services:
     depends_on:
       - api
 
+  # k6:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.k6
+  #   depends_on:
+  #     - api
+  #   networks:
+  #     - default
+   
+
 volumes:
   postgres_data:
