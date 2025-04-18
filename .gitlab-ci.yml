@@ -6,11 +6,13 @@ stages:
 build-job:
   stage: build
   script:
-    - powershell -Command "Set-Location .."
-    - powershell -Command "docker-compose build --no-cache"
-    - if ($LASTEXITCODE -ne 0) { exit 1 }
-    - powershell -Command "docker-compose up -d"
-    - if ($LASTEXITCODE -ne 0) { exit 1 }
+    # Construire l'image Docker sans cache
+    - docker-compose build --no-cache
+    - if [ $? -ne 0 ]; then exit 1; fi
+
+    # Démarrer les services en mode détaché
+    - docker-compose up -d
+    - if [ $? -ne 0 ]; then exit 1; fi
 
 
 unit-test-job:
