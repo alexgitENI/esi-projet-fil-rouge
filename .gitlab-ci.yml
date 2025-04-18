@@ -6,10 +6,17 @@ stages:
 build-job:
   stage: build
   script:
-    # Installer Docker Compose
-    - apt-get update && apt-get install -y curl
+    # Installer curl et jq
+    - apt-get update && apt-get install -y curl jq
+
+    # Télécharger la dernière version de docker-compose
     - curl -L "https://github.com/docker/compose/releases/download/$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name)/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+    # Rendre docker-compose exécutable
     - chmod +x /usr/local/bin/docker-compose
+
+    # Vérifier l'installation de docker-compose
+    - docker-compose --version
 
     # Se déplacer dans le répertoire parent
     - cd ..
@@ -21,6 +28,7 @@ build-job:
     # Démarrer les services en mode détaché
     - docker-compose up -d
     - if [ $? -ne 0 ]; then exit 1; fi
+
 
 
 
