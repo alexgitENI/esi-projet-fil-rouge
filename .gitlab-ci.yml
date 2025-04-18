@@ -6,6 +6,14 @@ stages:
 build-job:
   stage: build
   script:
+    # Installer Docker Compose
+    - apt-get update && apt-get install -y curl
+    - curl -L "https://github.com/docker/compose/releases/download/$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name)/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    - chmod +x /usr/local/bin/docker-compose
+
+    # Se déplacer dans le répertoire parent
+    - cd ..
+
     # Construire l'image Docker sans cache
     - docker-compose build --no-cache
     - if [ $? -ne 0 ]; then exit 1; fi
@@ -13,6 +21,7 @@ build-job:
     # Démarrer les services en mode détaché
     - docker-compose up -d
     - if [ $? -ne 0 ]; then exit 1; fi
+
 
 
 unit-test-job:
