@@ -1,4 +1,3 @@
-# medisecure-backend/api/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
@@ -50,13 +49,20 @@ app = FastAPI(
 )
 
 # Configuration CORS - Modification pour accepter les requêtes du frontend
+origins = [
+    "http://localhost:5173",  # Vite dev server
+    "http://localhost:3000",  # React dev server
+    "http://localhost",
+    "http://frontend",  # Si vous utilisez Docker Compose avec un service "frontend"
+    "*"  # Temporairement pour le développement
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "*"],  # Ajout de "*" pour le développement
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["*"]
 )
 
 # Middleware d'authentification
@@ -88,6 +94,7 @@ async def startup_event():
     logger.info(f"Version: {API_VERSION}")
     logger.info(f"Environnement: {os.getenv('ENVIRONMENT', 'development')}")
     logger.info(f"Préfixe API: {API_PREFIX}")
+    logger.info(f"CORS Origins: {origins}")
     
     # Afficher toutes les routes pour débogage
     for route in app.routes:

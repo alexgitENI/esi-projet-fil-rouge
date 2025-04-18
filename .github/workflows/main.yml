@@ -1,0 +1,39 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the code from the repository
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Set up Docker
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Docker Compose: Build images
+      - name: Build Docker images
+        run: |
+          docker compose build
+
+      # Docker Compose: Start the services in detached mode
+      - name: Start services in detached mode
+        run: |
+          docker compose up -d
+
+      # Docker 
+      - name: Start services in detached mode
+        run: |
+          docker exec esi-projet-fil-rouge-api-1 pytest
+
+
+      - name: Run k6 load test
+        run: |
+          docker compose run --rm k6

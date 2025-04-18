@@ -2,6 +2,7 @@
 from dependency_injector import containers, providers
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
+from typing import Dict, Any  # Ajout de l'import pour Dict
 
 from shared.adapters.primary.uuid_generator import UuidGenerator
 from shared.adapters.secondary.postgres_user_repository import PostgresUserRepository
