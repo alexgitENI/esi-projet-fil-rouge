@@ -1,4 +1,5 @@
 // medisecure-frontend/src/api/endpoints.ts
+
 export const API_URL = "http://localhost:8000/api";
 
 export const ENDPOINTS = {
