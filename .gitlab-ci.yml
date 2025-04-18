@@ -23,7 +23,7 @@ unit-test-job:
     - build-job
   script:
     - docker ps
-    - docker exec -it esi-projet-fil-rouge-api-1 pytest
+    - docker exec esi-projet-fil-rouge-api-1 pytest
 cleanup-job:
   tags:
   - windows-shell-true
