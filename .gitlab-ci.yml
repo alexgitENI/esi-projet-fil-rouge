@@ -40,8 +40,6 @@ unit-test-job:
     - docker ps
     - docker exec esi-projet-fil-rouge-api-1 pytest
 cleanup-job:
-  tags:
-  - windows-shell-true
   stage: cleanup
   script:
     - docker-compose down 
