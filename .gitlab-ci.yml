@@ -5,12 +5,18 @@ stages:
 
 build-job:
   stage: build
-  image: docker:latest  # Utiliser l'image Docker officielle
+  image: ubuntu:latest  # Utiliser l'image Ubuntu officielle
   services:
-    - docker:19.03.12-dind  # Activer Docker-in-Docker
+    - name: docker:19.03.12-dind  # Utiliser Docker-in-Docker
+      alias: docker  # Définir un alias pour accéder à Docker
+  before_script:
+    - apt-get update && apt-get install -y curl jq sudo lsb-release
+    - curl -fsSL https://get.docker.com | sh  # Installer Docker
+    - usermod -aG docker $USER  # Ajouter l'utilisateur au groupe Docker
+    - newgrp docker  # Recharger les groupes pour activer Docker pour l'utilisateur
   script:
-    # Installer curl et jq
-    - apk update && apk add curl jq
+    # Vérifier l'installation de Docker
+    - docker --version
 
     # Télécharger la dernière version de docker-compose
     - curl -L "https://github.com/docker/compose/releases/download/$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name)/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
@@ -28,8 +34,6 @@ build-job:
     # Démarrer les services en mode détaché
     - docker-compose up -d
     - if [ $? -ne 0 ]; then exit 1; fi
-
-
 
 
 unit-test-job:
