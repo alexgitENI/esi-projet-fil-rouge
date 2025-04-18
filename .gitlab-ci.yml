@@ -23,9 +23,12 @@ unit-test-job:
     - build-job
   script:
     -  Get-ChildItem -Recurse -File | ForEach-Object {
-          $content = Get-Content $_.FullName
-          $content | Set-Content -Path $_.FullName -Force -Encoding UTF8
-      }
+        if ($_ -ne $null -and Test-Path $_.FullName) {
+        $content = Get-Content $_.FullName
+        $content | Set-Content -Path $_.FullName -Force -Encoding UTF8
+        }
+        }
+
     - docker ps
     - docker exec esi-projet-fil-rouge-api-1 pytest
 cleanup-job:
