@@ -36,4 +36,4 @@ jobs:
 
       - name: Run k6 load test
         run: |
-          docker compose run k6 run /scripts/test.js
+          docker compose run k6 run /k6/test.js
