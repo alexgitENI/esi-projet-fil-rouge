@@ -32,3 +32,8 @@ jobs:
       - name: Start services in detached mode
         run: |
           docker exec esi-projet-fil-rouge-api-1 pytest
+
+
+      - name: Run k6 load test
+        run: |
+          docker compose run --rm k6
