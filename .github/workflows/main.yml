@@ -21,9 +21,9 @@ jobs:
       # Docker Compose: Build images
       - name: Build Docker images
         run: |
-          docker-compose -f docker-compose.yml build
+          docker compose build
 
       # Docker Compose: Start the services in detached mode
       - name: Start services in detached mode
         run: |
-          docker-compose -f docker-compose.yml up -d
+          docker compose up -d
