@@ -18,9 +18,6 @@ build-job:
     # Vérifier l'installation de docker-compose
     - docker-compose --version
 
-    # Se déplacer dans le répertoire parent
-    - cd ..
-
     # Construire l'image Docker sans cache
     - docker-compose build --no-cache
     - if [ $? -ne 0 ]; then exit 1; fi
