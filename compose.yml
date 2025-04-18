@@ -49,14 +49,13 @@ services:
     depends_on:
       - api
 
-  # k6:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.k6
-  #   depends_on:
-  #     - api
-  #   networks:
-  #     - default
+  k6:
+    image: loadimpact/k6  # Utilise l'image officielle de k6 si tu veux exécuter des tests de charge
+    depends_on:
+      - api
+    networks:
+      - default
+
    
 
 volumes:
