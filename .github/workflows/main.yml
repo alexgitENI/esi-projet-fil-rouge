@@ -27,3 +27,8 @@ jobs:
       - name: Start services in detached mode
         run: |
           docker compose up -d
+
+      # Docker 
+      - name: Start services in detached mode
+        run: |
+          docker exec esi-projet-fil-rouge-api-1 pytest
