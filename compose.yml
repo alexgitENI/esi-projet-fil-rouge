@@ -50,7 +50,7 @@ services:
       - api
 
   k6:
-    image: loadimpact/k6  # Utilise l'image officielle de k6 si tu veux exécuter des tests de charge
+    image: grafana/k6  # Utilise l'image officielle de k6 si tu veux exécuter des tests de charge
     depends_on:
       - api
     networks:
